@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-
+    id("com.google.devtools.ksp")
         //id("com.android.application")
         //id("org.jetbrains.kotlin.android")
         //id("org.jetbrains.kotlin.kapt")
@@ -10,16 +10,12 @@ plugins {
 
 android {
     namespace = "com.example.tou"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.tou"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -63,8 +59,13 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation("androidx.navigation:navigation-compose:2.8.0")
-    implementation("androidx.room:room-runtime:2.6.1")
+    /*implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    ksp("androidx.room:room-compiler:2.6.1")*/
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+    //implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.compose.material:material-icons-extended")
 }

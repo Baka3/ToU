@@ -31,6 +31,10 @@ class MainActivity : ComponentActivity() {
                     composable("add") {
                         AddNoteScreen(navController)
                     }
+                    composable("edit/{noteId}") { backStackEntry ->
+                        val noteId = backStackEntry.arguments?.getString("noteId")?.toInt() ?: return@composable
+                        EditNoteScreen(navController, noteId)
+                    }
                     /*@Composable
                     fun NotesScreen(navController: NavController) {
                         NotesScreen(navController)
@@ -44,5 +48,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
     }
 }

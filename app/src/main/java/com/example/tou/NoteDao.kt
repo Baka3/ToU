@@ -8,6 +8,8 @@ interface NoteDao {
     @Query("SELECT * FROM NoteEntity")
     fun getAll(): Flow<List<NoteEntity>>
 
+    @Query("SELECT * FROM NoteEntity WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Int): NoteEntity?
     @Insert
     suspend fun insert(note: NoteEntity)
     @Delete

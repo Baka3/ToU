@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,6 +41,9 @@ fun NotesScreen(navController: NavController) {
                         scope.launch {
                             App.db.noteDao().delete(note)
                         }
+                    },
+                    onEdit = {
+                        navController.navigate("edit/${note.id}")
                     }
                 )
             }
@@ -57,8 +61,10 @@ fun NotesScreen(navController: NavController) {
         fun NoteItem(
             note: NoteEntity,
             onToggleDone: () -> Unit,
-            onDelete: () -> Unit
-        ) {
+            onDelete: () -> Unit,
+            onEdit: () -> Unit
+        )
+        {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,6 +88,13 @@ fun NotesScreen(navController: NavController) {
                         MaterialTheme.typography.bodyLarge
                     }
                 )
+
+                IconButton(onClick = { onEdit() }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Редагувати"
+                    )
+                }
 
                 IconButton(onClick = { onDelete() }) {
                     Icon(
