@@ -23,13 +23,22 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = "notes"
+                    startDestination = "home"
                 ) {
-                    composable("notes") {
+                    composable("home") {
+                        HomeScreen(navController)
+                    }
+                    composable("notes_menu") {
+                        NotesMenuScreen(navController)
+                    }
+                    composable("notes_list") {
                         NotesScreen(navController)
                     }
                     composable("add") {
-                        AddNoteScreen(navController)
+                        AddNoteFullScreen(navController)
+                    }
+                    composable("add_note_full") {
+                        AddNoteFullScreen(navController)
                     }
                     composable("edit/{noteId}") { backStackEntry ->
                         val noteId = backStackEntry.arguments?.getString("noteId")?.toInt() ?: return@composable
