@@ -1,6 +1,7 @@
 package com.example.tou
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,11 +25,12 @@ fun AddNoteFullScreen(navController: NavController) {
 
     var noteText by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
+    var selectedTime by remember { mutableStateOf("") }
     var selectedEmoji by remember { mutableStateOf("") }
     var showEmojiField by remember { mutableStateOf(false) }
 
-    // Календар
     val calendar = Calendar.getInstance()
+
     val datePickerDialog = DatePickerDialog(
         context,
         { _, year, month, day ->
@@ -37,6 +39,16 @@ fun AddNoteFullScreen(navController: NavController) {
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            selectedTime = "%02d:%02d".format(hour, minute)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true
     )
 
     Column(
@@ -51,10 +63,7 @@ fun AddNoteFullScreen(navController: NavController) {
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Нотаточка",
-                modifier = Modifier.width(100.dp)
-            )
+            Text(text = "Нотаточка", modifier = Modifier.width(100.dp))
             TextField(
                 value = noteText,
                 onValueChange = { noteText = it },
@@ -70,23 +79,39 @@ fun AddNoteFullScreen(navController: NavController) {
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Термін",
-                modifier = Modifier.width(100.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-                    .clickable { datePickerDialog.show() },
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
-                    modifier = Modifier.padding(start = 16.dp),
-                    color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
-                )
+            Text(text = "Термін", modifier = Modifier.width(100.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                        .clickable { datePickerDialog.show() },
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
+                        modifier = Modifier.padding(start = 16.dp),
+                        color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                        .clickable { timePickerDialog.show() },
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = if (selectedTime.isEmpty()) "Оберіть час" else selectedTime,
+                        modifier = Modifier.padding(start = 16.dp),
+                        color = if (selectedTime.isEmpty()) Color.Gray else Color.Unspecified
+                    )
+                }
             }
         }
 
@@ -97,10 +122,7 @@ fun AddNoteFullScreen(navController: NavController) {
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Іконка",
-                modifier = Modifier.width(100.dp)
-            )
+            Text(text = "Іконка", modifier = Modifier.width(100.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
@@ -118,7 +140,6 @@ fun AddNoteFullScreen(navController: NavController) {
             }
         }
 
-        // Поле вводу емодзі
         if (showEmojiField) {
             Row(
                 modifier = Modifier
@@ -128,9 +149,7 @@ fun AddNoteFullScreen(navController: NavController) {
             ) {
                 TextField(
                     value = selectedEmoji,
-                    onValueChange = {
-                        if (it.length <= 2) selectedEmoji = it // обмежуємо до одного емодзі
-                    },
+                    onValueChange = { if (it.length <= 2) selectedEmoji = it },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Введіть емодзі") },
                     singleLine = true
@@ -143,22 +162,24 @@ fun AddNoteFullScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Кнопка підтаски
-        Button(
-            onClick = { },
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
             Text("Додати підтаски")
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Кнопка зберегти
         Button(
             onClick = {
                 if (noteText.isNotBlank()) {
                     scope.launch {
-                        App.db.noteDao().insert(NoteEntity(text = noteText))
+                        App.db.noteDao().insert(
+                            NoteEntity(
+                                text = noteText,
+                                emoji = selectedEmoji,
+                                date = selectedDate,
+                                time = selectedTime
+                            )
+                        )
                         navController.popBackStack()
                     }
                 }

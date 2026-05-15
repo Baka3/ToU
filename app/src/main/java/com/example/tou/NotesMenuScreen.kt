@@ -30,7 +30,7 @@ fun NotesMenuScreen(navController: NavController) {
         }
 
         Button(
-            onClick = { },
+            onClick = { navController.navigate("deadlines") },
             modifier = Modifier
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)
@@ -57,7 +57,7 @@ fun NotesMenuScreen(navController: NavController) {
         }
 
         Button(
-            onClick = { },
+            onClick = { navController.navigate("completed") },
             modifier = Modifier
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)

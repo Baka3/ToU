@@ -14,12 +14,15 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.unit.sp
 
 //import com.example.tou.Note
 
 @Composable
 fun NotesScreen(navController: NavController) {
-    val notes by App.db.noteDao().getAll()
+    val notes by App.db.noteDao().getActive()
         .collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
@@ -34,13 +37,16 @@ fun NotesScreen(navController: NavController) {
                     note = note,
                     onToggleDone = {
                         scope.launch {
-                            App.db.noteDao().update(note.copy(done = !note.done))
+                            App.db.noteDao().update(
+                                note.copy(
+                                    done = true,
+                                    completedAt = System.currentTimeMillis()
+                                )
+                            )
                         }
                     },
                     onDelete = {
-                        scope.launch {
-                            App.db.noteDao().delete(note)
-                        }
+                        scope.launch { App.db.noteDao().delete(note) }
                     },
                     onEdit = {
                         navController.navigate("edit/${note.id}")
@@ -50,61 +56,66 @@ fun NotesScreen(navController: NavController) {
         }
 
         Button(
-            onClick = { navController.navigate("add") },
+            onClick = { navController.navigate("add_note_full") },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Додати нотатку")
         }
     }
 }
-        @Composable
-        fun NoteItem(
-            note: NoteEntity,
-            onToggleDone: () -> Unit,
-            onDelete: () -> Unit,
-            onEdit: () -> Unit
+@Composable
+fun NoteItem(
+    note: NoteEntity,
+    onToggleDone: () -> Unit,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = note.done,
+            onCheckedChange = { onToggleDone() }
         )
-        {
-            Row(
+
+        // Емодзі в кружечку
+        if (note.emoji.isNotEmpty()) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .size(36.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Checkbox(
-                    checked = note.done,
-                    onCheckedChange = { onToggleDone() }
-                )
-
-                Text(
-                    text = note.text,
-                    modifier = Modifier.weight(1f),
-                    style = if (note.done) {
-                        MaterialTheme.typography.bodyLarge.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                        )
-                    } else {
-                        MaterialTheme.typography.bodyLarge
-                    }
-                )
-
-                IconButton(onClick = { onEdit() }) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Редагувати"
-                    )
-                }
-
-                IconButton(onClick = { onDelete() }) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Видалити",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+                Text(text = note.emoji, fontSize = 18.sp)
             }
+            Spacer(modifier = Modifier.width(8.dp))
         }
+
+        Text(
+            text = note.text,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        IconButton(onClick = { onEdit() }) {
+            Icon(imageVector = Icons.Default.Edit, contentDescription = "Редагувати")
+        }
+
+        IconButton(onClick = { onDelete() }) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Видалити",
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
 
     /*Column(
         modifier = Modifier

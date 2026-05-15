@@ -1,45 +1,179 @@
 package com.example.tou
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import java.util.*
 
 @Composable
 fun EditNoteScreen(navController: NavController, noteId: Int) {
     val scope = rememberCoroutineScope()
-    var text by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    var noteText by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf("") }
+    var selectedTime by remember { mutableStateOf("") }
+    var selectedEmoji by remember { mutableStateOf("") }
+    var showEmojiField by remember { mutableStateOf(false) }
 
     LaunchedEffect(noteId) {
         val note = App.db.noteDao().getById(noteId)
-        text = note?.text ?: ""
+        noteText = note?.text ?: ""
+        selectedDate = note?.date ?: ""
+        selectedTime = note?.time ?: ""
+        selectedEmoji = note?.emoji ?: ""
     }
+
+    val calendar = Calendar.getInstance()
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            selectedDate = "$day.${month + 1}.$year"
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            selectedTime = "%02d:%02d".format(hour, minute)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Редагувати нотатку...") }
-        )
+        // Нотаточка
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Нотаточка", modifier = Modifier.width(100.dp))
+            TextField(
+                value = noteText,
+                onValueChange = { noteText = it },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+        }
+
+        // Термін
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Термін", modifier = Modifier.width(100.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth().height(56.dp)
+                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                        .clickable { datePickerDialog.show() },
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
+                        modifier = Modifier.padding(start = 16.dp),
+                        color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth().height(56.dp)
+                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                        .clickable { timePickerDialog.show() },
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = if (selectedTime.isEmpty()) "Оберіть час" else selectedTime,
+                        modifier = Modifier.padding(start = 16.dp),
+                        color = if (selectedTime.isEmpty()) Color.Gray else Color.Unspecified
+                    )
+                }
+            }
+        }
+
+        // Іконка
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Іконка", modifier = Modifier.width(100.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                if (selectedEmoji.isNotEmpty()) {
+                    Text(text = selectedEmoji, fontSize = 32.sp, modifier = Modifier.padding(end = 8.dp))
+                }
+                OutlinedButton(onClick = { showEmojiField = !showEmojiField }) {
+                    Text(if (selectedEmoji.isEmpty()) "Обрати емодзі" else "Змінити")
+                }
+            }
+        }
+
+        if (showEmojiField) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = selectedEmoji,
+                    onValueChange = { if (it.length <= 2) selectedEmoji = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Введіть емодзі") },
+                    singleLine = true
+                )
+                TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = {
-            if (text.isNotBlank()) {
-                scope.launch {
-                    App.db.noteDao().update(NoteEntity(id = noteId, text = text))
-                    navController.popBackStack()
+        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
+            Text("Додати підтаски")
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Button(
+            onClick = {
+                if (noteText.isNotBlank()) {
+                    scope.launch {
+                        App.db.noteDao().update(
+                            NoteEntity(
+                                id = noteId,
+                                text = noteText,
+                                emoji = selectedEmoji,
+                                date = selectedDate,
+                                time = selectedTime
+                            )
+                        )
+                        navController.popBackStack()
+                    }
                 }
-            }
-        }) {
+            },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
             Text("Зберегти")
         }
     }

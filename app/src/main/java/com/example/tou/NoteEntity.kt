@@ -6,5 +6,9 @@ data class NoteEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val text: String,
-    val done: Boolean = false
+    val done: Boolean = false,
+    val emoji: String = "",
+    val date: String = "",
+    val time: String = "",
+    val completedAt: Long = 0L
 )

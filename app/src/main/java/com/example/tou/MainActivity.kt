@@ -44,6 +44,12 @@ class MainActivity : ComponentActivity() {
                         val noteId = backStackEntry.arguments?.getString("noteId")?.toInt() ?: return@composable
                         EditNoteScreen(navController, noteId)
                     }
+                    composable("deadlines") {
+                        DeadlinesScreen(navController)
+                    }
+                    composable("completed") {
+                        CompletedScreen(navController)
+                    }
                     /*@Composable
                     fun NotesScreen(navController: NavController) {
                         NotesScreen(navController)
