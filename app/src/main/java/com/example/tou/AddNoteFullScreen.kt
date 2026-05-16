@@ -17,10 +17,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import java.util.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddNoteFullScreen(navController: NavController) {
+fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -28,7 +30,7 @@ fun AddNoteFullScreen(navController: NavController) {
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
     var selectedEmoji by remember { mutableStateOf("") }
-    var topicText by remember { mutableStateOf("") }
+    var topicText by remember { mutableStateOf(defaultTopic) }
     var showEmojiField by remember { mutableStateOf(false) }
     var showTopicDropdown by remember { mutableStateOf(false) }
 
@@ -53,9 +55,15 @@ fun AddNoteFullScreen(navController: NavController) {
         true
     )
 
+    var description by remember { mutableStateOf("") }
+    var subtasks by remember { mutableStateOf(listOf<SubtaskDraft>()) }
+
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
         // Нотаточка
@@ -186,32 +194,62 @@ fun AddNoteFullScreen(navController: NavController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
-            Text("Додати підтаски")
+        // Опис
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.weight(1f),
+                minLines = 3
+            )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        /*Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
+            Text("Додати підтаски")
+        }*/
+        SubtasksSection(
+            subtasks = subtasks,
+            onSubtasksChange = { subtasks = it }
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
                 if (noteText.isNotBlank()) {
                     scope.launch {
-                        App.db.noteDao().insert(
+                        val noteId = App.db.noteDao().insert(
                             NoteEntity(
                                 text = noteText,
                                 emoji = selectedEmoji,
                                 date = selectedDate,
                                 time = selectedTime,
-                                topic = topicText
+                                topic = topicText,
+                                description = description
                             )
                         )
+                        subtasks.forEach { subtask ->
+                            App.db.subtaskDao().insert(
+                                SubtaskEntity(
+                                    parentNoteId = noteId.toInt(),
+                                    title = subtask.title,
+                                    description = subtask.description,
+                                    date = subtask.date,
+                                    time = subtask.time
+                                )
+                            )
+                        }
                         navController.popBackStack()
                     }
                 }
             },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Зберегти")
         }

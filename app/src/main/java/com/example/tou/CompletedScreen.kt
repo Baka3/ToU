@@ -3,6 +3,8 @@ package com.example.tou
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +17,7 @@ import androidx.navigation.NavController
 fun CompletedScreen(navController: NavController) {
     val notes by App.db.noteDao().getCompleted()
         .collectAsState(initial = emptyList())
+    val scrollState = rememberScrollState()
 
     if (notes.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -40,7 +43,12 @@ fun CompletedScreen(navController: NavController) {
                             modifier = Modifier.padding(end = 8.dp)
                         )
                     }
-                    Column(modifier = Modifier.weight(1f)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                            .padding(16.dp)
+                    ) {
                         Text(
                             text = note.text,
                             color = Color.Gray,

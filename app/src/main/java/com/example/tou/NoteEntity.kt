@@ -11,5 +11,6 @@ data class NoteEntity(
     val date: String = "",
     val time: String = "",
     val completedAt: Long = 0L,
-    val topic: String = ""
+    val topic: String = "",
+    val description: String = ""
 )

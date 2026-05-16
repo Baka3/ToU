@@ -25,13 +25,15 @@ interface NoteDao {
 
     @Query("SELECT * FROM NoteEntity WHERE topic = :topic AND done = 0")
     fun getByTopic(topic: String): Flow<List<NoteEntity>>
+    @Query("SELECT name FROM CustomTopicEntity")
+    fun getCustomTopics(): Flow<List<String>>
 
     @Insert
-    suspend fun insert(note: NoteEntity)
-
+    suspend fun insertCustomTopic(topic: CustomTopicEntity)
+    @Insert
+    suspend fun insert(note: NoteEntity): Long
     @Delete
     suspend fun delete(note: NoteEntity)
-
     @Update
     suspend fun update(note: NoteEntity)
 }

@@ -57,6 +57,17 @@ class MainActivity : ComponentActivity() {
                         val topic = backStackEntry.arguments?.getString("topic") ?: return@composable
                         TopicNotesScreen(navController, topic)
                     }
+                    composable("edit_subtask/{subtaskId}") { backStackEntry ->
+                        val subtaskId = backStackEntry.arguments?.getString("subtaskId")?.toInt() ?: return@composable
+                        EditSubtaskScreen(navController, subtaskId)
+                    }
+                    composable("add_note_full/{defaultTopic}") { backStackEntry ->
+                        val defaultTopic = backStackEntry.arguments?.getString("defaultTopic") ?: ""
+                        AddNoteFullScreen(navController, defaultTopic)
+                    }
+                    composable("add_note_full") {
+                        AddNoteFullScreen(navController, "")
+                    }
                     /*@Composable
                     fun NotesScreen(navController: NavController) {
                         NotesScreen(navController)

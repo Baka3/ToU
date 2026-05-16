@@ -45,9 +45,17 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                     },
                     onEdit = {
                         navController.navigate("edit/${note.id}")
-                    }
+                    },
+                    navController = navController
                 )
             }
+        }
+
+        Button(
+            onClick = { navController.navigate("add_note_full/$topic") }, // ← передаємо топік
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Додати нотаточку")
         }
     }
 }

@@ -11,6 +11,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 
 @Composable
 fun DeadlinesScreen(navController: NavController) {
@@ -60,38 +64,80 @@ fun DeadlinesScreen(navController: NavController) {
                 }
 
                 items(notesForDate) { note ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (note.emoji.isNotEmpty()) {
-                            Text(
-                                text = note.emoji,
-                                modifier = Modifier.padding(end = 8.dp),
-                                color = if (note.done) Color.Gray else Color.Unspecified
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = note.text,
-                                color = if (note.done) Color.Gray else Color.Unspecified,
-                                style = if (note.done) {
-                                    MaterialTheme.typography.bodyLarge.copy(
-                                        textDecoration = TextDecoration.LineThrough
+                    val subtasks by App.db.subtaskDao().getByNote(note.id)
+                        .collectAsState(initial = emptyList())
+                    val subtasksWithDate = subtasks.filter { it.date.isNotEmpty() }
+                    var expanded by remember { mutableStateOf(false) }
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (note.emoji.isNotEmpty()) {
+                                Text(
+                                    text = note.emoji,
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    color = if (note.done) Color.Gray else Color.Unspecified
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = note.text,
+                                    color = if (note.done) Color.Gray else Color.Unspecified,
+                                    style = if (note.done) {
+                                        MaterialTheme.typography.bodyLarge.copy(
+                                            textDecoration = TextDecoration.LineThrough
+                                        )
+                                    } else {
+                                        MaterialTheme.typography.bodyLarge
+                                    }
+                                )
+                            }
+                            if (note.time.isNotEmpty()) {
+                                Text(
+                                    text = note.time,
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            // стрілочка тільки якщо є підтаски з датою
+                            if (subtasksWithDate.isNotEmpty()) {
+                                IconButton(onClick = { expanded = !expanded }) {
+                                    Icon(
+                                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp
+                                        else Icons.Default.KeyboardArrowDown,
+                                        contentDescription = null
                                     )
-                                } else {
-                                    MaterialTheme.typography.bodyLarge
                                 }
-                            )
+                            }
                         }
-                        if (note.time.isNotEmpty()) {
-                            Text(
-                                text = note.time,
-                                color = Color.Gray,
-                                style = MaterialTheme.typography.bodySmall
-                            )
+
+                        AnimatedVisibility(visible = expanded) {
+                            Column(modifier = Modifier.padding(start = 32.dp)) {
+                                subtasksWithDate.forEach { subtask ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = subtask.title,
+                                            modifier = Modifier.weight(1f),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = if (subtask.done) Color.Gray else Color.Unspecified
+                                        )
+                                        Text(
+                                            text = "${subtask.date} ${subtask.time}".trim(),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color.Gray
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

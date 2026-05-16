@@ -33,7 +33,8 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
     var topicText by remember { mutableStateOf("") }
     var showEmojiField by remember { mutableStateOf(false) }
     var showTopicDropdown by remember { mutableStateOf(false) }
-
+    var subtasks by remember { mutableStateOf(listOf<SubtaskDraft>()) }
+    var description by remember { mutableStateOf("") }
     val existingTopics by App.db.noteDao().getTopics()
         .collectAsState(initial = emptyList())
 
@@ -44,6 +45,18 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         selectedTime = note?.time ?: ""
         selectedEmoji = note?.emoji ?: ""
         topicText = note?.topic ?: ""
+        description = note?.description ?: ""
+        val existingSubtasks = App.db.subtaskDao().getByNoteOnce(noteId)
+        subtasks = existingSubtasks.map {
+            SubtaskDraft(
+                id = it.id,
+                title = it.title,
+                description = it.description,
+                date = it.date,
+                time = it.time,
+                expanded = false
+            )
+        }
     }
 
     val calendar = Calendar.getInstance()
@@ -197,11 +210,29 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             }
         }
 
+        //Опис
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.weight(1f),
+                minLines = 3
+            )
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
+        SubtasksSection(
+            subtasks = subtasks,
+            onSubtasksChange = { subtasks = it }
+        )
+        /*Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
             Text("Додати підтаски")
-        }
+        }*/
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -216,14 +247,28 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                 emoji = selectedEmoji,
                                 date = selectedDate,
                                 time = selectedTime,
-                                topic = topicText
+                                topic = topicText,
+                                description = description
                             )
                         )
+                        // видаляємо старі підтаски і вставляємо оновлені
+                        App.db.subtaskDao().deleteByNote(noteId)
+                        subtasks.forEach { subtask ->
+                            App.db.subtaskDao().insert(
+                                SubtaskEntity(
+                                    parentNoteId = noteId,
+                                    title = subtask.title,
+                                    description = subtask.description,
+                                    date = subtask.date,
+                                    time = subtask.time
+                                )
+                            )
+                        }
                         navController.popBackStack()
                     }
                 }
             },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Зберегти")
         }
