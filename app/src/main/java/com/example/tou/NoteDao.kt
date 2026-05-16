@@ -14,8 +14,17 @@ interface NoteDao {
     @Query("SELECT * FROM NoteEntity")
     fun getAll(): Flow<List<NoteEntity>>
 
+    @Query("SELECT * FROM NoteEntity WHERE date != ''")
+    fun getWithDate(): Flow<List<NoteEntity>>
+
     @Query("SELECT * FROM NoteEntity WHERE id = :id LIMIT 1")
     suspend fun getById(id: Int): NoteEntity?
+
+    @Query("SELECT DISTINCT topic FROM NoteEntity WHERE topic != '' AND done = 0")
+    fun getTopics(): Flow<List<String>>
+
+    @Query("SELECT * FROM NoteEntity WHERE topic = :topic AND done = 0")
+    fun getByTopic(topic: String): Flow<List<NoteEntity>>
 
     @Insert
     suspend fun insert(note: NoteEntity)

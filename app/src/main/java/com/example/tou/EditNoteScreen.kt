@@ -17,7 +17,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import java.util.*
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditNoteScreen(navController: NavController, noteId: Int) {
     val scope = rememberCoroutineScope()
@@ -27,7 +30,12 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
     var selectedEmoji by remember { mutableStateOf("") }
+    var topicText by remember { mutableStateOf("") }
     var showEmojiField by remember { mutableStateOf(false) }
+    var showTopicDropdown by remember { mutableStateOf(false) }
+
+    val existingTopics by App.db.noteDao().getTopics()
+        .collectAsState(initial = emptyList())
 
     LaunchedEffect(noteId) {
         val note = App.db.noteDao().getById(noteId)
@@ -35,15 +43,14 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         selectedDate = note?.date ?: ""
         selectedTime = note?.time ?: ""
         selectedEmoji = note?.emoji ?: ""
+        topicText = note?.topic ?: ""
     }
 
     val calendar = Calendar.getInstance()
 
     val datePickerDialog = DatePickerDialog(
         context,
-        { _, year, month, day ->
-            selectedDate = "$day.${month + 1}.$year"
-        },
+        { _, year, month, day -> selectedDate = "$day.${month + 1}.$year" },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
@@ -51,9 +58,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
 
     val timePickerDialog = TimePickerDialog(
         context,
-        { _, hour, minute ->
-            selectedTime = "%02d:%02d".format(hour, minute)
-        },
+        { _, hour, minute -> selectedTime = "%02d:%02d".format(hour, minute) },
         calendar.get(Calendar.HOUR_OF_DAY),
         calendar.get(Calendar.MINUTE),
         true
@@ -115,6 +120,51 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             }
         }
 
+        // Топік
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Топік", modifier = Modifier.width(100.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                ExposedDropdownMenuBox(
+                    expanded = showTopicDropdown && existingTopics.isNotEmpty(),
+                    onExpandedChange = { showTopicDropdown = it }
+                ) {
+                    TextField(
+                        value = topicText,
+                        onValueChange = { topicText = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(MenuAnchorType.PrimaryEditable, true),
+                        singleLine = true,
+                        placeholder = { Text("Введіть або оберіть топік") },
+                        trailingIcon = {
+                            if (existingTopics.isNotEmpty()) {
+                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                    expanded = showTopicDropdown
+                                )
+                            }
+                        }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = showTopicDropdown && existingTopics.isNotEmpty(),
+                        onDismissRequest = { showTopicDropdown = false }
+                    ) {
+                        existingTopics.forEach { topic ->
+                            DropdownMenuItem(
+                                text = { Text(topic) },
+                                onClick = {
+                                    topicText = topic
+                                    showTopicDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         // Іконка
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -165,7 +215,8 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                 text = noteText,
                                 emoji = selectedEmoji,
                                 date = selectedDate,
-                                time = selectedTime
+                                time = selectedTime,
+                                topic = topicText
                             )
                         )
                         navController.popBackStack()

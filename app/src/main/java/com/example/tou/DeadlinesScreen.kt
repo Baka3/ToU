@@ -8,12 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
 fun DeadlinesScreen(navController: NavController) {
-    val notes by App.db.noteDao().getAll()
+    val notes by App.db.noteDao().getWithDate()
         .collectAsState(initial = emptyList())
 
     // беремо тільки нотатки з датою і групуємо по даті
@@ -68,20 +69,42 @@ fun DeadlinesScreen(navController: NavController) {
                         if (note.emoji.isNotEmpty()) {
                             Text(
                                 text = note.emoji,
-                                modifier = Modifier.padding(end = 8.dp)
+                                modifier = Modifier.padding(end = 8.dp),
+                                color = if (note.done) Color.Gray else Color.Unspecified
                             )
                         }
-                        Text(text = note.text)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = note.text,
+                                color = if (note.done) Color.Gray else Color.Unspecified,
+                                style = if (note.done) {
+                                    MaterialTheme.typography.bodyLarge.copy(
+                                        textDecoration = TextDecoration.LineThrough
+                                    )
+                                } else {
+                                    MaterialTheme.typography.bodyLarge
+                                }
+                            )
+                        }
                         if (note.time.isNotEmpty()) {
+                            Text(
+                                text = note.time,
+                                color = Color.Gray,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+                        /*if (note.time.isNotEmpty()) {
                             Spacer(modifier = Modifier.weight(1f))
                             Text(text = note.time, color = Color.Gray)
-                        }
+                        }*/
                     }
                 }
             }
         }
-    }
-}
+
+
 
 // Парсимо дату "dd.MM.yyyy" для сортування
 fun parseDate(dateStr: String): Long {

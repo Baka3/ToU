@@ -39,7 +39,7 @@ fun NotesMenuScreen(navController: NavController) {
         }
 
         Button(
-            onClick = { },
+            onClick = { navController.navigate("topics") },
             modifier = Modifier
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)

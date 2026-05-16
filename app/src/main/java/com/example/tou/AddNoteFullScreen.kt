@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNoteFullScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
@@ -27,15 +28,18 @@ fun AddNoteFullScreen(navController: NavController) {
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
     var selectedEmoji by remember { mutableStateOf("") }
+    var topicText by remember { mutableStateOf("") }
     var showEmojiField by remember { mutableStateOf(false) }
+    var showTopicDropdown by remember { mutableStateOf(false) }
+
+    val existingTopics by App.db.noteDao().getTopics()
+        .collectAsState(initial = emptyList())
 
     val calendar = Calendar.getInstance()
 
     val datePickerDialog = DatePickerDialog(
         context,
-        { _, year, month, day ->
-            selectedDate = "$day.${month + 1}.$year"
-        },
+        { _, year, month, day -> selectedDate = "$day.${month + 1}.$year" },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
@@ -43,9 +47,7 @@ fun AddNoteFullScreen(navController: NavController) {
 
     val timePickerDialog = TimePickerDialog(
         context,
-        { _, hour, minute ->
-            selectedTime = "%02d:%02d".format(hour, minute)
-        },
+        { _, hour, minute -> selectedTime = "%02d:%02d".format(hour, minute) },
         calendar.get(Calendar.HOUR_OF_DAY),
         calendar.get(Calendar.MINUTE),
         true
@@ -58,9 +60,7 @@ fun AddNoteFullScreen(navController: NavController) {
     ) {
         // Нотаточка
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Нотаточка", modifier = Modifier.width(100.dp))
@@ -74,17 +74,14 @@ fun AddNoteFullScreen(navController: NavController) {
 
         // Термін
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Термін", modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
+                        .fillMaxWidth().height(56.dp)
                         .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
                         .clickable { datePickerDialog.show() },
                     contentAlignment = Alignment.CenterStart
@@ -95,13 +92,10 @@ fun AddNoteFullScreen(navController: NavController) {
                         color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
                     )
                 }
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
+                        .fillMaxWidth().height(56.dp)
                         .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
                         .clickable { timePickerDialog.show() },
                     contentAlignment = Alignment.CenterStart
@@ -115,24 +109,60 @@ fun AddNoteFullScreen(navController: NavController) {
             }
         }
 
+        // Топік
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Топік", modifier = Modifier.width(100.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                ExposedDropdownMenuBox(
+                    expanded = showTopicDropdown,
+                    onExpandedChange = { showTopicDropdown = it }
+                ) {
+                    TextField(
+                        value = topicText,
+                        onValueChange = { topicText = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        singleLine = true,
+                        placeholder = { Text("Введіть або оберіть топік") },
+                        trailingIcon = {
+                            if (existingTopics.isNotEmpty()) {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = showTopicDropdown)
+                            }
+                        }
+                    )
+                    if (existingTopics.isNotEmpty()) {
+                        ExposedDropdownMenu(
+                            expanded = showTopicDropdown,
+                            onDismissRequest = { showTopicDropdown = false }
+                        ) {
+                            existingTopics.forEach { topic ->
+                                DropdownMenuItem(
+                                    text = { Text(topic) },
+                                    onClick = {
+                                        topicText = topic
+                                        showTopicDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Іконка
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Іконка", modifier = Modifier.width(100.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 if (selectedEmoji.isNotEmpty()) {
-                    Text(
-                        text = selectedEmoji,
-                        fontSize = 32.sp,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
+                    Text(text = selectedEmoji, fontSize = 32.sp, modifier = Modifier.padding(end = 8.dp))
                 }
                 OutlinedButton(onClick = { showEmojiField = !showEmojiField }) {
                     Text(if (selectedEmoji.isEmpty()) "Обрати емодзі" else "Змінити")
@@ -142,9 +172,7 @@ fun AddNoteFullScreen(navController: NavController) {
 
         if (showEmojiField) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextField(
@@ -154,9 +182,7 @@ fun AddNoteFullScreen(navController: NavController) {
                     placeholder = { Text("Введіть емодзі") },
                     singleLine = true
                 )
-                TextButton(onClick = { showEmojiField = false }) {
-                    Text("Ок")
-                }
+                TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
             }
         }
 
@@ -177,7 +203,8 @@ fun AddNoteFullScreen(navController: NavController) {
                                 text = noteText,
                                 emoji = selectedEmoji,
                                 date = selectedDate,
-                                time = selectedTime
+                                time = selectedTime,
+                                topic = topicText
                             )
                         )
                         navController.popBackStack()

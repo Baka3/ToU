@@ -50,6 +50,13 @@ class MainActivity : ComponentActivity() {
                     composable("completed") {
                         CompletedScreen(navController)
                     }
+                    composable("topics") {
+                        TopicsScreen(navController)
+                    }
+                    composable("topic_notes/{topic}") { backStackEntry ->
+                        val topic = backStackEntry.arguments?.getString("topic") ?: return@composable
+                        TopicNotesScreen(navController, topic)
+                    }
                     /*@Composable
                     fun NotesScreen(navController: NavController) {
                         NotesScreen(navController)
