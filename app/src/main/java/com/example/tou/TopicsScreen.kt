@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Delete
 
 @Composable
 fun TopicsScreen(navController: NavController) {
@@ -59,7 +60,17 @@ fun TopicsScreen(navController: NavController) {
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.weight(1f)
                         )
-                        Text(text = "›", color = Color.Gray)
+                        IconButton(onClick = {
+                            scope.launch {
+                                App.db.topicDao().deleteByName(topic)
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Видалити топік",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                     HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                 }

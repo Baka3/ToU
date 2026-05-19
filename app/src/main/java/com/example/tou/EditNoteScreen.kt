@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.heightIn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,6 +135,19 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         }
 
         // Топік
+        val allTopicsForDropdown by App.db.topicDao().getAll()
+            .collectAsState(initial = emptyList())
+        val topicsFromNotes by App.db.noteDao().getTopics()
+            .collectAsState(initial = emptyList())
+        val allAvailableTopics = (allTopicsForDropdown + topicsFromNotes).distinct()
+
+        val filteredTopics = remember(topicText, allAvailableTopics) {
+            if (topicText.isEmpty()) allAvailableTopics
+            else allAvailableTopics.filter {
+                it.startsWith(topicText, ignoreCase = true)
+            }
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -141,19 +155,22 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             Text(text = "Топік", modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
                 ExposedDropdownMenuBox(
-                    expanded = showTopicDropdown && existingTopics.isNotEmpty(),
+                    expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
                     onExpandedChange = { showTopicDropdown = it }
                 ) {
                     TextField(
                         value = topicText,
-                        onValueChange = { topicText = it },
+                        onValueChange = {
+                            topicText = it
+                            showTopicDropdown = true
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                         singleLine = true,
                         placeholder = { Text("Введіть або оберіть топік") },
                         trailingIcon = {
-                            if (existingTopics.isNotEmpty()) {
+                            if (allAvailableTopics.isNotEmpty()) {
                                 ExposedDropdownMenuDefaults.TrailingIcon(
                                     expanded = showTopicDropdown
                                 )
@@ -161,10 +178,11 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                         }
                     )
                     ExposedDropdownMenu(
-                        expanded = showTopicDropdown && existingTopics.isNotEmpty(),
-                        onDismissRequest = { showTopicDropdown = false }
+                        expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
+                        onDismissRequest = { showTopicDropdown = false },
+                        modifier = Modifier.heightIn(max = 200.dp) // ← обмежуємо висоту, всередині буде скрол
                     ) {
-                        existingTopics.forEach { topic ->
+                        filteredTopics.forEach { topic ->
                             DropdownMenuItem(
                                 text = { Text(topic) },
                                 onClick = {
