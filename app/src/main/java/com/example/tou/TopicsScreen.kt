@@ -73,9 +73,12 @@ fun TopicsScreen(navController: NavController) {
             add(to.index, removeAt(from.index))
         }
         scope.launch {
-            reorderableTopics.forEachIndexed { index, name ->
-                App.db.topicDao().updateOrder(name, index)
-            }
+            val maxOrder = App.db.topicDao().getMaxOrder() ?: 0
+            App.db.topicDao().insert(
+                CustomTopicEntity(name = newTopicName.trim(), order = maxOrder + 1)
+            )
+            newTopicName = ""
+            showAddDialog = false
         }
 }
 

@@ -24,13 +24,15 @@ interface NoteDao {
     fun getByTopic(topic: String): Flow<List<NoteEntity>>
     @Query("SELECT name FROM CustomTopicEntity")
     fun getCustomTopics(): Flow<List<String>>
-    @Query("SELECT * FROM NoteEntity WHERE done = 0 ORDER BY `order` ASC")
+    @Query("SELECT * FROM NoteEntity WHERE done = 0 ORDER BY `order` DESC")
     fun getActive(): Flow<List<NoteEntity>>
-
+    @Query("SELECT MAX(`order`) FROM NoteEntity")
+    suspend fun getMaxOrder(): Int?
     @Query("UPDATE NoteEntity SET `order` = :order WHERE id = :id")
     suspend fun updateOrder(id: Int, order: Int)
     @Query("UPDATE NoteEntity SET topic = :newName WHERE topic = :oldName")
     suspend fun renameTopic(oldName: String, newName: String)
+
     @Insert
     suspend fun insertCustomTopic(topic: CustomTopicEntity)
     @Insert

@@ -242,6 +242,10 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
             onClick = {
                 if (noteText.isNotBlank()) {
                     scope.launch {
+                        if (topicText.isNotBlank()) {
+                            ensureTopicExists(topicText)
+                        }
+                        val maxOrder = App.db.noteDao().getMaxOrder() ?: 0
                         val noteId = App.db.noteDao().insert(
                             NoteEntity(
                                 text = noteText,
@@ -249,7 +253,8 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
                                 date = selectedDate,
                                 time = selectedTime,
                                 topic = topicText,
-                                description = description
+                                description = description,
+                                order = maxOrder + 1
                             )
                         )
                         subtasks.forEach { subtask ->

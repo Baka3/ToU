@@ -79,4 +79,9 @@ class App : Application() {
             MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8
         ).build()
     }
+    suspend fun ensureTopicExists(name: String) {
+        if (name.isNotBlank() && App.db.topicDao().exists(name) == 0) {
+            App.db.topicDao().insert(CustomTopicEntity(name = name))
+        }
+    }
 }

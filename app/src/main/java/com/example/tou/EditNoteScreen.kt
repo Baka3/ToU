@@ -137,13 +137,10 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         // Топік
         val allTopicsForDropdown by App.db.topicDao().getAll()
             .collectAsState(initial = emptyList())
-        val topicsFromNotes by App.db.noteDao().getTopics()
-            .collectAsState(initial = emptyList())
-        val allAvailableTopics = (allTopicsForDropdown + topicsFromNotes).distinct()
 
-        val filteredTopics = remember(topicText, allAvailableTopics) {
-            if (topicText.isEmpty()) allAvailableTopics
-            else allAvailableTopics.filter {
+        val filteredTopics = remember(topicText, allTopicsForDropdown) {
+            if (topicText.isEmpty()) allTopicsForDropdown
+            else allTopicsForDropdown.filter {
                 it.startsWith(topicText, ignoreCase = true)
             }
         }
@@ -170,7 +167,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                         singleLine = true,
                         placeholder = { Text("Введіть або оберіть топік") },
                         trailingIcon = {
-                            if (allAvailableTopics.isNotEmpty()) {
+                            if (allTopicsForDropdown.isNotEmpty()) {
                                 ExposedDropdownMenuDefaults.TrailingIcon(
                                     expanded = showTopicDropdown
                                 )
@@ -258,6 +255,9 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             onClick = {
                 if (noteText.isNotBlank()) {
                     scope.launch {
+                        if (topicText.isNotBlank()) {
+                            ensureTopicExists(topicText)
+                        }
                         App.db.noteDao().update(
                             NoteEntity(
                                 id = noteId,
@@ -269,7 +269,6 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                 description = description
                             )
                         )
-                        // видаляємо старі підтаски і вставляємо оновлені
                         App.db.subtaskDao().deleteByNote(noteId)
                         subtasks.forEach { subtask ->
                             App.db.subtaskDao().insert(
