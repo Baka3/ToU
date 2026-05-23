@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
+
 @Composable
 fun TopicsScreen(navController: NavController) {
     val customTopics by App.db.topicDao().getAll()
@@ -56,9 +58,14 @@ fun TopicsScreen(navController: NavController) {
 
     val allTopics = (reorderableTopics + topicsFromNotes).distinct()
 
-    var showDialog by remember { mutableStateOf(false) }
-    var newTopicName by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newTopicName by remember { mutableStateOf("") }
+
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var renamingTopic by remember { mutableStateOf("") }
+    var newName by remember { mutableStateOf("") }
 
     val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -70,129 +77,173 @@ fun TopicsScreen(navController: NavController) {
                 App.db.topicDao().updateOrder(name, index)
             }
         }
-    }
+}
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        if (allTopics.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Топіків ще немає", color = Color.Gray)
-            }
-        } else {
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier.weight(1f)
-            ) {
-                items(allTopics, key = { it }) { topic ->
-                    val isCustom = topic in reorderableTopics
-                    ReorderableItem(
-                        reorderableState,
-                        key = topic,
-                        enabled = isCustom
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { navController.navigate("topic_notes/$topic") }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (isCustom) {
-                                Icon(
-                                    imageVector = Icons.Default.DragHandle,
-                                    contentDescription = "Перетягнути",
-                                    modifier = Modifier
-                                        .draggableHandle()
-                                        .padding(end = 8.dp),
-                                    tint = Color.Gray
-                                )
-                            } else {
-                                Spacer(modifier = Modifier.width(32.dp))
-                            }
-
-                            Text(
-                                text = topic,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            if (isCustom) {
-                                IconButton(onClick = {
-                                    scope.launch {
-                                        App.db.topicDao().deleteByName(topic)
-                                    }
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Видалити",
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            }
-                        }
-                        HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedButton(
-            onClick = { showDialog = true },
-            modifier = Modifier.fillMaxWidth()
+Column(
+modifier = Modifier
+.fillMaxSize()
+.padding(16.dp)
+) {
+    if (allTopics.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text("Додати топік")
+            Text("Топіків ще немає", color = Color.Gray)
         }
+    } else {
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier.weight(1f)
+        ) {
+            items(allTopics, key = { it }) { topic ->
+                val isCustom = topic in reorderableTopics
+                ReorderableItem(
+                    reorderableState,
+                    key = topic,
+                    enabled = isCustom
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { navController.navigate("topic_notes/$topic") }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (isCustom) {
+                            Icon(
+                                imageVector = Icons.Default.DragHandle,
+                                contentDescription = "Перетягнути",
+                                modifier = Modifier
+                                    .draggableHandle()
+                                    .padding(end = 8.dp),
+                                tint = Color.Gray
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.width(32.dp))
+                        }
 
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("Новий топік") },
-                text = {
-                    TextField(
-                        value = newTopicName,
-                        onValueChange = { newTopicName = it },
-                        placeholder = { Text("Назва топіку") },
-                        singleLine = true
-                    )
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        if (newTopicName.isNotBlank()) {
-                            scope.launch {
-                                App.db.topicDao().insert(
-                                    CustomTopicEntity(name = newTopicName.trim())
+                        Text(
+                            text = topic,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        if (isCustom) {
+                            IconButton(onClick = {
+                                renamingTopic = topic
+                                newName = topic
+                                showRenameDialog = true
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Редагувати назву"
                                 )
-                                newTopicName = ""
-                                showDialog = false
+                            }
+                            IconButton(onClick = {
+                                scope.launch { App.db.topicDao().deleteByName(topic) }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Видалити",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
                             }
                         }
-                    }) {
-                        Text("Додати")
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
-                        Text("Скасувати")
-                    }
+                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                 }
-            )
+            }
         }
     }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    OutlinedButton(
+        onClick = { showAddDialog = true },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+        Text("Додати топік")
+    }
+}
+
+// Діалог додавання топіку
+if (showAddDialog) {
+    AlertDialog(
+        onDismissRequest = { showAddDialog = false },
+        title = { Text("Новий топік") },
+        text = {
+            TextField(
+                value = newTopicName,
+                onValueChange = { newTopicName = it },
+                placeholder = { Text("Назва топіку") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (newTopicName.isNotBlank()) {
+                    scope.launch {
+                        App.db.topicDao().insert(
+                            CustomTopicEntity(name = newTopicName.trim())
+                        )
+                        newTopicName = ""
+                        showAddDialog = false
+                    }
+                }
+            }) {
+                Text("Додати")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { showAddDialog = false }) {
+                Text("Скасувати")
+            }
+        }
+    )
+}
+
+// Діалог перейменування топіку
+if (showRenameDialog) {
+    AlertDialog(
+        onDismissRequest = { showRenameDialog = false },
+        title = { Text("Змінити назву") },
+        text = {
+            TextField(
+                value = newName,
+                onValueChange = { newName = it },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (newName.isNotBlank() && newName != renamingTopic) {
+                    scope.launch {
+                        App.db.topicDao().rename(renamingTopic, newName.trim())
+                        App.db.noteDao().renameTopic(renamingTopic, newName.trim())
+                        showRenameDialog = false
+                    }
+                } else {
+                    showRenameDialog = false
+                }
+            }) {
+                Text("Зберегти")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { showRenameDialog = false }) {
+                Text("Скасувати")
+            }
+        }
+    )
+}
 }
  /*@Composable
 fun TopicsScreen(navController: NavController) {

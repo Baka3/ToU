@@ -6,6 +6,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.tou.ClockWidget
 
     @Composable
     fun HomeScreen(navController: NavController) {
@@ -41,4 +42,28 @@ import androidx.navigation.NavController
                 Text("Налаштування")
             }
         }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Spacer(modifier = Modifier.height(100.dp))
+
+            ClockWidget()
+            // віджет з годинником
+        }
+        /*Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(85.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                ClockWidget()
+            }
+            //Text("Hello")
+        }*/
     }

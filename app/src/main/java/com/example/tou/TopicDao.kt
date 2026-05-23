@@ -16,4 +16,6 @@ interface TopicDao {
 
     @Query("UPDATE CustomTopicEntity SET `order` = :order WHERE name = :name")
     suspend fun updateOrder(name: String, order: Int)
+    @Query("UPDATE CustomTopicEntity SET name = :newName WHERE name = :oldName")
+    suspend fun rename(oldName: String, newName: String)
 }

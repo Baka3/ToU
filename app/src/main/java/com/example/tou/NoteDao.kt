@@ -29,7 +29,8 @@ interface NoteDao {
 
     @Query("UPDATE NoteEntity SET `order` = :order WHERE id = :id")
     suspend fun updateOrder(id: Int, order: Int)
-
+    @Query("UPDATE NoteEntity SET topic = :newName WHERE topic = :oldName")
+    suspend fun renameTopic(oldName: String, newName: String)
     @Insert
     suspend fun insertCustomTopic(topic: CustomTopicEntity)
     @Insert
