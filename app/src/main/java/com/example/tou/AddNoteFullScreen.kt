@@ -61,6 +61,12 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
 
     val scrollState = rememberScrollState()
 
+    var reminderType by remember { mutableStateOf("") }
+    var reminderDate by remember { mutableStateOf("") }
+    var reminderTime by remember { mutableStateOf("") }
+    var reminderDateFrom by remember { mutableStateOf("") }
+    var reminderDateTo by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -116,6 +122,21 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
                     )
                 }
             }
+        }
+
+        if (selectedDate.isNotEmpty()) {
+            ReminderSection(
+                reminderType = reminderType,
+                reminderDate = reminderDate,
+                reminderTime = reminderTime,
+                reminderDateFrom = reminderDateFrom,
+                reminderDateTo = reminderDateTo,
+                onReminderTypeChange = { reminderType = it },
+                onReminderDateChange = { reminderDate = it },
+                onReminderTimeChange = { reminderTime = it },
+                onReminderDateFromChange = { reminderDateFrom = it },
+                onReminderDateToChange = { reminderDateTo = it }
+            )
         }
 
         // Топік
@@ -254,9 +275,28 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
                                 time = selectedTime,
                                 topic = topicText,
                                 description = description,
-                                order = maxOrder + 1
+                                order = maxOrder + 1,
+                                reminderType = reminderType,
+                                reminderDate = reminderDate,
+                                reminderTime = reminderTime,
+                                reminderDateFrom = reminderDateFrom,
+                                reminderDateTo = reminderDateTo
                             )
                         )
+
+// плануємо нагадування
+                        when (reminderType) {
+                            "single" -> {
+                                if (reminderDate.isNotEmpty() && reminderTime.isNotEmpty()) {
+                                    scheduleReminder(context, noteId.toInt(), noteText, reminderDate, reminderTime)
+                                }
+                            }
+                            "range" -> {
+                                if (reminderDateFrom.isNotEmpty() && reminderDateTo.isNotEmpty() && reminderTime.isNotEmpty()) {
+                                    scheduleRangeReminders(context, noteId.toInt(), noteText, reminderDateFrom, reminderDateTo, reminderTime)
+                                }
+                            }
+                        }
                         subtasks.forEach { subtask ->
                             App.db.subtaskDao().insert(
                                 SubtaskEntity(

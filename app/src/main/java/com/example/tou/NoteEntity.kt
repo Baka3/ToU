@@ -13,5 +13,10 @@ data class NoteEntity(
     val completedAt: Long = 0L,
     val topic: String = "",
     val description: String = "",
-    val order: Int = 0
+    val order: Int = 0,
+    val reminderType: String = "", // "single" або "range"
+    val reminderDate: String = "",
+    val reminderTime: String = "",
+    val reminderDateFrom: String = "",
+    val reminderDateTo: String = ""
 )

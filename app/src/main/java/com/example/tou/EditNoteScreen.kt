@@ -36,6 +36,11 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
     var showTopicDropdown by remember { mutableStateOf(false) }
     var subtasks by remember { mutableStateOf(listOf<SubtaskDraft>()) }
     var description by remember { mutableStateOf("") }
+    var reminderType by remember { mutableStateOf("") }
+    var reminderDate by remember { mutableStateOf("") }
+    var reminderTime by remember { mutableStateOf("") }
+    var reminderDateFrom by remember { mutableStateOf("") }
+    var reminderDateTo by remember { mutableStateOf("") }
     val existingTopics by App.db.noteDao().getTopics()
         .collectAsState(initial = emptyList())
 
@@ -47,6 +52,11 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         selectedEmoji = note?.emoji ?: ""
         topicText = note?.topic ?: ""
         description = note?.description ?: ""
+        reminderType = note?.reminderType ?: ""
+        reminderDate = note?.reminderDate ?: ""
+        reminderTime = note?.reminderTime ?: ""
+        reminderDateFrom = note?.reminderDateFrom ?: ""
+        reminderDateTo = note?.reminderDateTo ?: ""
         val existingSubtasks = App.db.subtaskDao().getByNoteOnce(noteId)
         subtasks = existingSubtasks.map {
             SubtaskDraft(
@@ -132,6 +142,21 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                     )
                 }
             }
+        }
+
+        if (selectedDate.isNotEmpty()) {
+            ReminderSection(
+                reminderType = reminderType,
+                reminderDate = reminderDate,
+                reminderTime = reminderTime,
+                reminderDateFrom = reminderDateFrom,
+                reminderDateTo = reminderDateTo,
+                onReminderTypeChange = { reminderType = it },
+                onReminderDateChange = { reminderDate = it },
+                onReminderTimeChange = { reminderTime = it },
+                onReminderDateFromChange = { reminderDateFrom = it },
+                onReminderDateToChange = { reminderDateTo = it }
+            )
         }
 
         // Топік
@@ -280,6 +305,19 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                     time = subtask.time
                                 )
                             )
+                        }
+                        cancelReminder(context, noteId)
+                        when (reminderType) {
+                            "single" -> {
+                                if (reminderDate.isNotEmpty() && reminderTime.isNotEmpty()) {
+                                    scheduleReminder(context, noteId, noteText, reminderDate, reminderTime)
+                                }
+                            }
+                            "range" -> {
+                                if (reminderDateFrom.isNotEmpty() && reminderDateTo.isNotEmpty() && reminderTime.isNotEmpty()) {
+                                    scheduleRangeReminders(context, noteId, noteText, reminderDateFrom, reminderDateTo, reminderTime)
+                                }
+                            }
                         }
                         navController.popBackStack()
                     }

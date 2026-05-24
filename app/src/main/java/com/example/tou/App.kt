@@ -65,6 +65,15 @@ class App : Application() {
                 database.execSQL("ALTER TABLE CustomTopicEntity ADD COLUMN `order` INTEGER NOT NULL DEFAULT 0")
             }
         }
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE NoteEntity ADD COLUMN reminderType TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE NoteEntity ADD COLUMN reminderDate TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE NoteEntity ADD COLUMN reminderTime TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE NoteEntity ADD COLUMN reminderDateFrom TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE NoteEntity ADD COLUMN reminderDateTo TEXT NOT NULL DEFAULT ''")
+            }
+        }
     }
 
     override fun onCreate() {
@@ -76,7 +85,8 @@ class App : Application() {
             "notes_db"
         ).addMigrations(
             MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,
-            MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8
+            MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8,
+            MIGRATION_8_9
         ).build()
     }
     suspend fun ensureTopicExists(name: String) {
