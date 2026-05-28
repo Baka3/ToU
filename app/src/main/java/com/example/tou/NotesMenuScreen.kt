@@ -39,6 +39,15 @@ fun NotesMenuScreen(navController: NavController) {
         }
 
         Button(
+            onClick = { navController.navigate("reminders") },
+            modifier = Modifier
+                .fillMaxWidth(0.6f)
+                .padding(vertical = 8.dp)
+        ) {
+            Text("Нагадування")
+        }
+
+        Button(
             onClick = { navController.navigate("topics") },
             modifier = Modifier
                 .fillMaxWidth(0.6f)

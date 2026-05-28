@@ -84,6 +84,9 @@ class MainActivity : ComponentActivity() {
                         composable("add_note_full") {
                             AddNoteFullScreen(navController, "")
                         }
+                        composable("reminders") {
+                            RemindersScreen(navController)
+                        }
                     }
                 }
             }

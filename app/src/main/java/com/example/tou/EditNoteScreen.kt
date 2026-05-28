@@ -2,6 +2,8 @@ package com.example.tou
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +24,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +48,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
     var reminderTime by remember { mutableStateOf("") }
     var reminderDateFrom by remember { mutableStateOf("") }
     var reminderDateTo by remember { mutableStateOf("") }
+    var imagePath by remember { mutableStateOf("") }
     val existingTopics by App.db.noteDao().getTopics()
         .collectAsState(initial = emptyList())
 
@@ -59,6 +65,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         reminderTime = note?.reminderTime ?: ""
         reminderDateFrom = note?.reminderDateFrom ?: ""
         reminderDateTo = note?.reminderDateTo ?: ""
+        imagePath = note?.imagePath ?: ""
         val existingSubtasks = App.db.subtaskDao().getByNoteOnce(noteId)
         subtasks = existingSubtasks.map {
             SubtaskDraft(
@@ -89,7 +96,11 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         calendar.get(Calendar.MINUTE),
         true
     )
-
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { imagePath = it.toString() }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -284,6 +295,34 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             )
         }
 
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Зображення", modifier = Modifier.width(100.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                if (imagePath.isNotEmpty()) {
+                    AsyncImage(
+                        model = imagePath,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    TextButton(onClick = { imagePath = "" }) {
+                        Text("Видалити фото", color = MaterialTheme.colorScheme.error)
+                    }
+                } else {
+                    OutlinedButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                        Text("Обрати фото")
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
         SubtasksSection(
@@ -311,7 +350,13 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                 date = selectedDate,
                                 time = selectedTime,
                                 topic = topicText,
-                                description = description
+                                description = description,
+                                imagePath = imagePath,
+                                reminderType = reminderType,
+                                reminderDate = reminderDate,
+                                reminderTime = reminderTime,
+                                reminderDateFrom = reminderDateFrom,
+                                reminderDateTo = reminderDateTo
                             )
                         )
                         App.db.subtaskDao().deleteByNote(noteId)

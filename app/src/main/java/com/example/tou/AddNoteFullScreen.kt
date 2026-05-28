@@ -2,6 +2,8 @@ package com.example.tou
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,7 +24,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
@@ -36,6 +40,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
     var topicText by remember { mutableStateOf(defaultTopic) }
     var showEmojiField by remember { mutableStateOf(false) }
     var showTopicDropdown by remember { mutableStateOf(false) }
+    var imagePath by remember { mutableStateOf("") }
 
     val existingTopics by App.db.noteDao().getTopics()
         .collectAsState(initial = emptyList())
@@ -68,6 +73,11 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
     var reminderTime by remember { mutableStateOf("") }
     var reminderDateFrom by remember { mutableStateOf("") }
     var reminderDateTo by remember { mutableStateOf("") }
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { imagePath = it.toString() }
+    }
 
     Column(
         modifier = Modifier
@@ -266,6 +276,35 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
             )
         }
 
+        // Зображення
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Зображення", modifier = Modifier.width(100.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                if (imagePath.isNotEmpty()) {
+                    AsyncImage(
+                        model = imagePath,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    TextButton(onClick = { imagePath = "" }) {
+                        Text("Видалити фото", color = MaterialTheme.colorScheme.error)
+                    }
+                } else {
+                    OutlinedButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                        Text("Обрати фото")
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
         /*Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
@@ -294,6 +333,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "") {
                                 time = selectedTime,
                                 topic = topicText,
                                 description = description,
+                                imagePath = imagePath,
                                 order = maxOrder + 1,
                                 reminderType = reminderType,
                                 reminderDate = reminderDate,
