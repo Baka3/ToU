@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import java.util.Calendar
+import androidx.compose.material.icons.filled.Close
 
 @Composable
 fun ReminderSection(
@@ -26,7 +27,8 @@ fun ReminderSection(
     onReminderDateChange: (String) -> Unit,
     onReminderTimeChange: (String) -> Unit,
     onReminderDateFromChange: (String) -> Unit,
-    onReminderDateToChange: (String) -> Unit
+    onReminderDateToChange: (String) -> Unit,
+    onClear: () -> Unit
 ) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -54,11 +56,22 @@ fun ReminderSection(
             .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
             .padding(12.dp)
     ) {
-        Text(
-            text = "Нагадування",
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        // Заголовок з кнопкою очистити
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Нагадування",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f)
+            )
+            if (reminderType.isNotEmpty()) {
+                TextButton(onClick = { onClear() }) {
+                    Text("Очистити", color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
 
         // Одне нагадування
         Row(
@@ -67,19 +80,18 @@ fun ReminderSection(
         ) {
             Checkbox(
                 checked = reminderType == "single",
-                onCheckedChange = {
-                    onReminderTypeChange(if (it) "single" else "")
-                }
+                onCheckedChange = { onReminderTypeChange(if (it) "single" else "") }
             )
             Text("Одне нагадування")
         }
 
         if (reminderType == "single") {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Дата
                 Box(
                     modifier = Modifier
                         .weight(1f).height(48.dp)
@@ -94,7 +106,6 @@ fun ReminderSection(
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                // Час
                 Box(
                     modifier = Modifier
                         .weight(1f).height(48.dp)
@@ -120,9 +131,7 @@ fun ReminderSection(
         ) {
             Checkbox(
                 checked = reminderType == "range",
-                onCheckedChange = {
-                    onReminderTypeChange(if (it) "range" else "")
-                }
+                onCheckedChange = { onReminderTypeChange(if (it) "range" else "") }
             )
             Text("Проміжок")
         }
@@ -133,7 +142,6 @@ fun ReminderSection(
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 4.dp)
             ) {
-                // Від
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -156,7 +164,6 @@ fun ReminderSection(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // До
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -179,7 +186,6 @@ fun ReminderSection(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Час щоденного нагадування
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically

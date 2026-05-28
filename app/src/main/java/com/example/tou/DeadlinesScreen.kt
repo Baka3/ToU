@@ -2,6 +2,7 @@ package com.example.tou
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -86,6 +87,7 @@ fun DeadlinesScreen(navController: NavController) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clickable { navController.navigate("edit/${note.id}") }
                             .then(
                                 if (noteOverdue) Modifier.background(Color.Red.copy(alpha = 0.1f))
                                 else Modifier

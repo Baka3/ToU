@@ -20,6 +20,8 @@ import java.util.*
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,37 +116,49 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         ) {
             Text(text = "Термін", modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth().height(56.dp)
-                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-                        .clickable { datePickerDialog.show() },
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Text(
-                        text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
-                        modifier = Modifier.padding(start = 16.dp),
-                        color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f).height(56.dp)
+                            .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                            .clickable { datePickerDialog.show() },
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
+                            modifier = Modifier.padding(start = 16.dp),
+                            color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
+                        )
+                    }
+                    if (selectedDate.isNotEmpty()) {
+                        IconButton(onClick = {
+                            selectedDate = ""
+                            selectedTime = ""
+                        }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити термін")
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth().height(56.dp)
-                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-                        .clickable { timePickerDialog.show() },
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Text(
-                        text = if (selectedTime.isEmpty()) "Оберіть час" else selectedTime,
-                        modifier = Modifier.padding(start = 16.dp),
-                        color = if (selectedTime.isEmpty()) Color.Gray else Color.Unspecified
-                    )
+
+                if (selectedDate.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth().height(56.dp)
+                            .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                            .clickable { timePickerDialog.show() },
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = if (selectedTime.isEmpty()) "Оберіть час" else selectedTime,
+                            modifier = Modifier.padding(start = 16.dp),
+                            color = if (selectedTime.isEmpty()) Color.Gray else Color.Unspecified
+                        )
+                    }
                 }
             }
         }
 
-        if (selectedDate.isNotEmpty()) {
             ReminderSection(
                 reminderType = reminderType,
                 reminderDate = reminderDate,
@@ -155,9 +169,15 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                 onReminderDateChange = { reminderDate = it },
                 onReminderTimeChange = { reminderTime = it },
                 onReminderDateFromChange = { reminderDateFrom = it },
-                onReminderDateToChange = { reminderDateTo = it }
+                onReminderDateToChange = { reminderDateTo = it },
+                onClear = {
+                    reminderType = ""
+                    reminderDate = ""
+                    reminderTime = ""
+                    reminderDateFrom = ""
+                    reminderDateTo = ""
+                }
             )
-        }
 
         // Топік
         val allTopicsForDropdown by App.db.topicDao().getAll()

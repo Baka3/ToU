@@ -4,6 +4,7 @@ package com.example.tou
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -130,10 +131,16 @@ fun NoteItem(
     val subtasks by App.db.subtaskDao().getByNote(note.id)
         .collectAsState(initial = emptyList())
     var expanded by remember { mutableStateOf(false) }
+    val noteOverdue = isOverdue(note.date, note.time) && !note.done
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { navController.navigate("edit/${note.id}") }
+            .then(
+                if (noteOverdue) Modifier.background(Color.Red.copy(alpha = 0.1f))
+                else Modifier
+            )
             .padding(vertical = 4.dp)
     ) {
         Row(
@@ -164,7 +171,9 @@ fun NoteItem(
 
             Text(
                 text = note.text,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onEdit() }, // ← клік тільки на текст
                 style = MaterialTheme.typography.bodyLarge
             )
 
