@@ -1,6 +1,6 @@
 package com.example.tou
 import androidx.room.*
-@Database(entities = [NoteEntity::class, SubtaskEntity::class, CustomTopicEntity::class], version = 10)
+@Database(entities = [NoteEntity::class, SubtaskEntity::class, CustomTopicEntity::class], version = 13)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun subtaskDao(): SubtaskDao

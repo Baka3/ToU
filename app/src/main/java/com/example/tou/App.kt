@@ -79,6 +79,103 @@ class App : Application() {
                 database.execSQL("ALTER TABLE NoteEntity ADD COLUMN imagePath TEXT NOT NULL DEFAULT ''")
             }
         }
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN emoji TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN topic TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN imagePath TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN reminderType TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN reminderDate TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN reminderTime TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN reminderDateFrom TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN reminderDateTo TEXT NOT NULL DEFAULT ''")
+            }
+        }
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE NoteEntity ADD COLUMN attachments TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE SubtaskEntity ADD COLUMN attachments TEXT NOT NULL DEFAULT ''")
+            }
+        }
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Перестворюємо NoteEntity без imagePath
+                database.execSQL("""
+            CREATE TABLE NoteEntity_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                text TEXT NOT NULL,
+                done INTEGER NOT NULL DEFAULT 0,
+                emoji TEXT NOT NULL DEFAULT '',
+                date TEXT NOT NULL DEFAULT '',
+                time TEXT NOT NULL DEFAULT '',
+                completedAt INTEGER NOT NULL DEFAULT 0,
+                topic TEXT NOT NULL DEFAULT '',
+                description TEXT NOT NULL DEFAULT '',
+                `order` INTEGER NOT NULL DEFAULT 0,
+                reminderType TEXT NOT NULL DEFAULT '',
+                reminderDate TEXT NOT NULL DEFAULT '',
+                reminderTime TEXT NOT NULL DEFAULT '',
+                reminderDateFrom TEXT NOT NULL DEFAULT '',
+                reminderDateTo TEXT NOT NULL DEFAULT '',
+                attachments TEXT NOT NULL DEFAULT ''
+            )
+        """.trimIndent())
+
+                // Копіюємо дані, imagePath ігноруємо
+                database.execSQL("""
+            INSERT INTO NoteEntity_new (
+                id, text, done, emoji, date, time, completedAt, topic, description,
+                `order`, reminderType, reminderDate, reminderTime, reminderDateFrom,
+                reminderDateTo, attachments
+            )
+            SELECT 
+                id, text, done, emoji, date, time, completedAt, topic, description,
+                `order`, reminderType, reminderDate, reminderTime, reminderDateFrom,
+                reminderDateTo, attachments
+            FROM NoteEntity
+        """.trimIndent())
+
+                database.execSQL("DROP TABLE NoteEntity")
+                database.execSQL("ALTER TABLE NoteEntity_new RENAME TO NoteEntity")
+
+                // Те саме для SubtaskEntity
+                database.execSQL("""
+            CREATE TABLE SubtaskEntity_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                parentNoteId INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                date TEXT NOT NULL DEFAULT '',
+                time TEXT NOT NULL DEFAULT '',
+                done INTEGER NOT NULL DEFAULT 0,
+                emoji TEXT NOT NULL DEFAULT '',
+                topic TEXT NOT NULL DEFAULT '',
+                reminderType TEXT NOT NULL DEFAULT '',
+                reminderDate TEXT NOT NULL DEFAULT '',
+                reminderTime TEXT NOT NULL DEFAULT '',
+                reminderDateFrom TEXT NOT NULL DEFAULT '',
+                reminderDateTo TEXT NOT NULL DEFAULT '',
+                attachments TEXT NOT NULL DEFAULT ''
+            )
+        """.trimIndent())
+
+                database.execSQL("""
+            INSERT INTO SubtaskEntity_new (
+                id, parentNoteId, title, description, date, time, done, emoji, topic,
+                reminderType, reminderDate, reminderTime, reminderDateFrom, reminderDateTo,
+                attachments
+            )
+            SELECT 
+                id, parentNoteId, title, description, date, time, done, emoji, topic,
+                reminderType, reminderDate, reminderTime, reminderDateFrom, reminderDateTo,
+                attachments
+            FROM SubtaskEntity
+        """.trimIndent())
+
+                database.execSQL("DROP TABLE SubtaskEntity")
+                database.execSQL("ALTER TABLE SubtaskEntity_new RENAME TO SubtaskEntity")
+            }
+        }
     }
 
     override fun onCreate() {
@@ -91,7 +188,8 @@ class App : Application() {
         ).addMigrations(
             MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,
             MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8,
-            MIGRATION_8_9, MIGRATION_9_10
+            MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11,
+            MIGRATION_11_12, MIGRATION_12_13
         ).build()
     }
     suspend fun ensureTopicExists(name: String) {

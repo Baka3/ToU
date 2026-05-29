@@ -15,6 +15,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
             private val requestPermissionLauncher = registerForActivityResult(
@@ -50,11 +52,22 @@ class MainActivity : ComponentActivity() {
                         composable("notes_list") {
                             NotesScreen(navController)
                         }
-                        composable("add") {
-                            AddNoteFullScreen(navController)
-                        }
                         composable("add_note_full") {
-                            AddNoteFullScreen(navController)
+                            AddNoteFullScreen(navController = navController, defaultTopic = "")
+                        }
+                        composable("add_note_full/{defaultTopic}") { backStackEntry ->
+                            val defaultTopic = backStackEntry.arguments?.getString("defaultTopic") ?: ""
+                            AddNoteFullScreen(navController = navController, defaultTopic = defaultTopic)
+                        }
+                        composable(
+                            route = "add_subtask/{parentNoteId}",
+                        ) { backStackEntry ->
+                            val parentNoteId = backStackEntry.arguments?.getString("parentNoteId")?.toInt()
+                            AddNoteFullScreen(
+                                navController = navController,
+                                defaultTopic = "",
+                                parentNoteId = parentNoteId
+                            )
                         }
                         composable("edit/{noteId}") { backStackEntry ->
                             val noteId = backStackEntry.arguments?.getString("noteId")?.toInt() ?: return@composable
@@ -76,13 +89,6 @@ class MainActivity : ComponentActivity() {
                         composable("edit_subtask/{subtaskId}") { backStackEntry ->
                             val subtaskId = backStackEntry.arguments?.getString("subtaskId")?.toInt() ?: return@composable
                             EditSubtaskScreen(navController, subtaskId)
-                        }
-                        composable("add_note_full/{defaultTopic}") { backStackEntry ->
-                            val defaultTopic = backStackEntry.arguments?.getString("defaultTopic") ?: ""
-                            AddNoteFullScreen(navController, defaultTopic)
-                        }
-                        composable("add_note_full") {
-                            AddNoteFullScreen(navController, "")
                         }
                         composable("reminders") {
                             RemindersScreen(navController)

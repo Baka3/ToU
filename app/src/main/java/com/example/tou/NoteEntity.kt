@@ -19,6 +19,5 @@ data class NoteEntity(
     val reminderTime: String = "",
     val reminderDateFrom: String = "",
     val reminderDateTo: String = "",
-    val imagePath: String = ""
-    //val imagePath = imagePath
+    val attachments: String = ""
 )
