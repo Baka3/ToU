@@ -7,33 +7,37 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import java.util.*
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
-import androidx.compose.material.icons.filled.AttachFile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int? = null) {
+fun EditNoteScreen(navController: NavController, noteId: Int) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     var noteText by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
@@ -42,7 +46,6 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
     var topicText by remember { mutableStateOf("") }
     var showEmojiField by remember { mutableStateOf(false) }
     var showTopicDropdown by remember { mutableStateOf(false) }
-    var subtasks by remember { mutableStateOf(listOf<SubtaskDraft>()) }
     var description by remember { mutableStateOf("") }
     var reminderType by remember { mutableStateOf("") }
     var reminderDate by remember { mutableStateOf("") }
@@ -50,7 +53,8 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
     var reminderDateFrom by remember { mutableStateOf("") }
     var reminderDateTo by remember { mutableStateOf("") }
     var attachments by remember { mutableStateOf(listOf<String>()) }
-    val existingTopics by App.db.noteDao().getTopics()
+
+    val subtasksFromDb by App.db.subtaskDao().getByNote(noteId)
         .collectAsState(initial = emptyList())
 
     LaunchedEffect(noteId) {
@@ -67,17 +71,6 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
         reminderDateFrom = note?.reminderDateFrom ?: ""
         reminderDateTo = note?.reminderDateTo ?: ""
         attachments = decodeAttachments(note?.attachments ?: "")
-        val existingSubtasks = App.db.subtaskDao().getByNoteOnce(noteId)
-        subtasks = existingSubtasks.map {
-            SubtaskDraft(
-                id = it.id,
-                title = it.title,
-                description = it.description,
-                date = it.date,
-                time = it.time,
-                expanded = false
-            )
-        }
     }
 
     val calendar = Calendar.getInstance()
@@ -97,9 +90,19 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
         calendar.get(Calendar.MINUTE),
         true
     )
+
+    val allTopicsForDropdown by App.db.topicDao().getAll()
+        .collectAsState(initial = emptyList())
+    val filteredTopics = remember(topicText, allTopicsForDropdown) {
+        if (topicText.isEmpty()) allTopicsForDropdown
+        else allTopicsForDropdown.filter { it.startsWith(topicText, ignoreCase = true) }
+    }
+
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
         Text(
@@ -107,6 +110,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 16.dp)
         )
+
         // Нотаточка
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -144,11 +148,10 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
                     }
                     if (selectedDate.isNotEmpty()) {
                         IconButton(onClick = { selectedDate = ""; selectedTime = "" }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити термін")
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити")
                         }
                     }
                 }
-
                 if (selectedDate.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -174,7 +177,8 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
                 }
             }
         }
-// Нагадування — окремо від терміну
+
+        // Нагадування
         ReminderSection(
             reminderType = reminderType,
             reminderDate = reminderDate,
@@ -195,105 +199,77 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
             }
         )
 
-                // Топік
-                val allTopicsForDropdown by App.db.topicDao().getAll()
-                    .collectAsState(initial = emptyList())
-
-                val filteredTopics = remember(topicText, allTopicsForDropdown) {
-                    if (topicText.isEmpty()) allTopicsForDropdown
-                    else allTopicsForDropdown.filter {
-                        it.startsWith(topicText, ignoreCase = true)
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+        // Топік
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Топік", modifier = Modifier.width(100.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                ExposedDropdownMenuBox(
+                    expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
+                    onExpandedChange = { showTopicDropdown = it }
                 ) {
-                    Text(text = "Топік", modifier = Modifier.width(100.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        ExposedDropdownMenuBox(
-                            expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
-                            onExpandedChange = { showTopicDropdown = it }
-                        ) {
-                            TextField(
-                                value = topicText,
-                                onValueChange = {
-                                    topicText = it
-                                    showTopicDropdown = true
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(MenuAnchorType.PrimaryEditable, true),
-                                singleLine = true,
-                                placeholder = { Text("Введіть або оберіть топік") },
-                                trailingIcon = {
-                                    if (allTopicsForDropdown.isNotEmpty()) {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                            expanded = showTopicDropdown
-                                        )
-                                    }
-                                }
-                            )
-                            ExposedDropdownMenu(
-                                expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
-                                onDismissRequest = { showTopicDropdown = false },
-                                modifier = Modifier.heightIn(max = 200.dp) // ← обмежуємо висоту, всередині буде скрол
-                            ) {
-                                filteredTopics.forEach { topic ->
-                                    DropdownMenuItem(
-                                        text = { Text(topic) },
-                                        onClick = {
-                                            topicText = topic
-                                            showTopicDropdown = false
-                                        }
-                                    )
-                                }
+                    TextField(
+                        value = topicText,
+                        onValueChange = { topicText = it; showTopicDropdown = true },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, true),
+                        singleLine = true,
+                        placeholder = { Text("Введіть або оберіть топік") },
+                        trailingIcon = {
+                            if (allTopicsForDropdown.isNotEmpty()) {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = showTopicDropdown)
                             }
                         }
-                    }
-                }
-
-                // Іконка
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Іконка", modifier = Modifier.width(100.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
+                        onDismissRequest = { showTopicDropdown = false },
+                        modifier = Modifier.heightIn(max = 200.dp)
                     ) {
-                        if (selectedEmoji.isNotEmpty()) {
-                            Text(
-                                text = selectedEmoji,
-                                fontSize = 32.sp,
-                                modifier = Modifier.padding(end = 8.dp)
+                        filteredTopics.forEach { topic ->
+                            DropdownMenuItem(
+                                text = { Text(topic) },
+                                onClick = { topicText = topic; showTopicDropdown = false }
                             )
                         }
-                        OutlinedButton(onClick = { showEmojiField = !showEmojiField }) {
-                            Text(if (selectedEmoji.isEmpty()) "Обрати емодзі" else "Змінити")
-                        }
                     }
                 }
+            }
+        }
 
-                if (showEmojiField) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextField(
-                            value = selectedEmoji,
-                            onValueChange = { if (it.length <= 2) selectedEmoji = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("Введіть емодзі") },
-                            singleLine = true
-                        )
-                        TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
-                    }
+        // Іконка
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Іконка", modifier = Modifier.width(100.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                if (selectedEmoji.isNotEmpty()) {
+                    Text(text = selectedEmoji, fontSize = 32.sp, modifier = Modifier.padding(end = 8.dp))
                 }
+                OutlinedButton(onClick = { showEmojiField = !showEmojiField }) {
+                    Text(if (selectedEmoji.isEmpty()) "Обрати емодзі" else "Змінити")
+                }
+            }
+        }
 
-        // Зображення + файли
+        if (showEmojiField) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = selectedEmoji,
+                    onValueChange = { if (it.length <= 2) selectedEmoji = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Введіть емодзі") },
+                    singleLine = true
+                )
+                TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
+            }
+        }
+
         // Опис зі скріпкою
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -305,8 +281,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
                     TextField(
                         value = description,
                         onValueChange = { description = it },
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(end = 40.dp), // місце для скріпки
+                        modifier = Modifier.fillMaxWidth().padding(end = 40.dp),
                         minLines = 3
                     )
                     var showMenu by remember { mutableStateOf(false) }
@@ -319,15 +294,9 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
 
                     Box(modifier = Modifier.align(Alignment.TopEnd)) {
                         IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Default.AttachFile,
-                                contentDescription = "Прикріпити"
-                            )
+                            Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
                         }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
+                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                             DropdownMenuItem(
                                 text = { Text("Додати зображення") },
                                 onClick = { showMenu = false; imagePicker.launch("image/*") }
@@ -340,146 +309,139 @@ fun EditNoteScreen(navController: NavController, noteId: Int,  parentNoteId: Int
                     }
                 }
 
-                // показуємо прикріплені файли під описом якщо є
-                if (attachments.isNotEmpty()) {
-                    attachments.forEachIndexed { index, path ->
-                        val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
-                            .any { path.lowercase().endsWith(it) } || path.contains("image")
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (isImage) {
-                                AsyncImage(
-                                    model = path,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(4.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AttachFile,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(48.dp).padding(8.dp)
-                                )
-                            }
-                            Text(
-                                text = path.substringAfterLast("/"),
-                                modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                                maxLines = 1
-                            )
-                            IconButton(onClick = {
-                                attachments =
-                                    attachments.toMutableList().also { it.removeAt(index) }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Видалити"
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (parentNoteId == null) {
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch { // ← прибрали if (noteText.isNotBlank())
-                                if (topicText.isNotBlank()) ensureTopicExists(topicText)
-                                val maxOrder = App.db.noteDao().getMaxOrder() ?: 0
-                                val noteId = App.db.noteDao().insert(
-                                    NoteEntity(
-                                        text = noteText.ifBlank { "Без назви" }, // ← дефолтна назва
-                                        emoji = selectedEmoji,
-                                        date = selectedDate,
-                                        time = selectedTime,
-                                        topic = topicText,
-                                        description = description,
-                                        order = maxOrder + 1,
-                                        attachments = encodeAttachments(attachments),
-                                        reminderType = reminderType,
-                                        reminderDate = reminderDate,
-                                        reminderTime = reminderTime,
-                                        reminderDateFrom = reminderDateFrom,
-                                        reminderDateTo = reminderDateTo
-                                    )
-                                )
-                                navController.navigate("add_subtask/${noteId.toInt()}")
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                attachments.forEachIndexed { index, path ->
+                    val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
+                        .any { path.lowercase().endsWith(it) } || path.contains("image")
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("+ Додати підтаску")
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = {
-                        if (noteText.isNotBlank()) {
-                            scope.launch {
-                                if (parentNoteId != null) {
-                                    App.db.subtaskDao().insert(
-                                        SubtaskEntity(
-                                            parentNoteId = parentNoteId,
-                                            title = noteText,
-                                            description = description,
-                                            date = selectedDate,
-                                            time = selectedTime,
-                                            emoji = selectedEmoji,
-                                            topic = topicText,
-                                            attachments = encodeAttachments(attachments),
-                                            reminderType = reminderType,
-                                            reminderDate = reminderDate,
-                                            reminderTime = reminderTime,
-                                            reminderDateFrom = reminderDateFrom,
-                                            reminderDateTo = reminderDateTo
-                                        )
-                                    )
-                                    navController.navigate("edit/${parentNoteId}") { // ← замість popBackStack
-                                        popUpTo("notes_list") { inclusive = false }
-                                    }
-                                } else {
-                                    if (topicText.isNotBlank()) ensureTopicExists(topicText)
-                                    val maxOrder = App.db.noteDao().getMaxOrder() ?: 0
-                                    val noteId = App.db.noteDao().insert(
-                                        NoteEntity(
-                                            text = noteText,
-                                            emoji = selectedEmoji,
-                                            date = selectedDate,
-                                            time = selectedTime,
-                                            topic = topicText,
-                                            description = description,
-                                            order = maxOrder + 1,
-                                            attachments = encodeAttachments(attachments),
-                                            reminderType = reminderType,
-                                            reminderDate = reminderDate,
-                                            reminderTime = reminderTime,
-                                            reminderDateFrom = reminderDateFrom,
-                                            reminderDateTo = reminderDateTo
-                                        )
-                                    )
-                                    when (reminderType) {
-                                        "single" -> if (reminderDate.isNotEmpty() && reminderTime.isNotEmpty()) {
-                                            scheduleReminder(context, noteId.toInt(), noteText, reminderDate, reminderTime)
-                                        }
-                                        "range" -> if (reminderDateFrom.isNotEmpty() && reminderDateTo.isNotEmpty() && reminderTime.isNotEmpty()) {
-                                            scheduleRangeReminders(context, noteId.toInt(), noteText, reminderDateFrom, reminderDateTo, reminderTime)
-                                        }
-                                    }
-                                }
-                                navController.popBackStack()
-                            }
+                        if (isImage) {
+                            AsyncImage(
+                                model = path,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AttachFile,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp).padding(8.dp)
+                            )
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Зберегти")
+                        Text(
+                            text = path.substringAfterLast("/"),
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                            maxLines = 1
+                        )
+                        IconButton(onClick = {
+                            attachments = attachments.toMutableList().also { it.removeAt(index) }
+                        }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
+                        }
+                    }
                 }
             }
         }
+
+        // Підтаски
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Підтаски",
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+        subtasksFromDb.forEach { subtask ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = subtask.done,
+                    onCheckedChange = {
+                        scope.launch {
+                            App.db.subtaskDao().update(subtask.copy(done = !subtask.done))
+                        }
+                    }
+                )
+                Text(
+                    text = subtask.title,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { navController.navigate("edit_subtask/${subtask.id}") },
+                    style = if (subtask.done) {
+                        MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration = TextDecoration.LineThrough,
+                            color = Color.Gray
+                        )
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    }
+                )
+                IconButton(onClick = { navController.navigate("edit_subtask/${subtask.id}") }) {
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Редагувати", modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = {
+                    scope.launch { App.db.subtaskDao().delete(subtask) }
+                }) {
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Видалити", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
+
+        OutlinedButton(
+            onClick = { navController.navigate("add_subtask/$noteId") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
+            Text("+ Додати підтаску")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                if (noteText.isNotBlank()) {
+                    scope.launch {
+                        if (topicText.isNotBlank()) ensureTopicExists(topicText)
+                        App.db.noteDao().update(
+                            NoteEntity(
+                                id = noteId,
+                                text = noteText,
+                                emoji = selectedEmoji,
+                                date = selectedDate,
+                                time = selectedTime,
+                                topic = topicText,
+                                description = description,
+                                attachments = encodeAttachments(attachments),
+                                reminderType = reminderType,
+                                reminderDate = reminderDate,
+                                reminderTime = reminderTime,
+                                reminderDateFrom = reminderDateFrom,
+                                reminderDateTo = reminderDateTo
+                            )
+                        )
+                        cancelReminder(context, noteId)
+                        when (reminderType) {
+                            "single" -> if (reminderDate.isNotEmpty() && reminderTime.isNotEmpty()) {
+                                scheduleReminder(context, noteId, noteText, reminderDate, reminderTime)
+                            }
+                            "range" -> if (reminderDateFrom.isNotEmpty() && reminderDateTo.isNotEmpty() && reminderTime.isNotEmpty()) {
+                                scheduleRangeReminders(context, noteId, noteText, reminderDateFrom, reminderDateTo, reminderTime)
+                            }
+                        }
+                        navController.navigate("notes_list") {
+                            popUpTo("notes_list") { inclusive = false }
+                        }
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Зберегти")
+        }
+    }
+}

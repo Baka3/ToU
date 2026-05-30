@@ -217,7 +217,7 @@ fun NoteItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { expanded = !expanded }
+            //.clickable { expanded = !expanded }
             .then(
                 if (noteOverdue) Modifier.background(Color.Red.copy(alpha = 0.1f))
                 else Modifier

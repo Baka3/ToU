@@ -17,7 +17,6 @@ import androidx.navigation.NavController
 fun CompletedScreen(navController: NavController) {
     val notes by App.db.noteDao().getCompleted()
         .collectAsState(initial = emptyList())
-    val scrollState = rememberScrollState()
 
     if (notes.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -43,12 +42,7 @@ fun CompletedScreen(navController: NavController) {
                             modifier = Modifier.padding(end = 8.dp)
                         )
                     }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(scrollState)
-                            .padding(16.dp)
-                    ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = note.text,
                             color = Color.Gray,

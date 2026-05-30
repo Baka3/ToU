@@ -70,7 +70,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("edit/{noteId}") { backStackEntry ->
-                            val noteId = backStackEntry.arguments?.getString("noteId")?.toInt() ?: return@composable
+                            val noteId = backStackEntry.arguments?.getString("noteId")
+                                ?.takeIf { it != "null" }
+                                ?.toIntOrNull() ?: return@composable
                             EditNoteScreen(navController, noteId)
                         }
                         composable("deadlines") {

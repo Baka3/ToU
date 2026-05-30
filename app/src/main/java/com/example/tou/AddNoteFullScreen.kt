@@ -410,7 +410,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                                     reminderDateTo = reminderDateTo
                                 )
                             )
-                            navController.navigate("edit/${parentNoteId}") { // ← замість popBackStack
+                            navController.navigate("edit/$parentNoteId") {
                                 popUpTo("notes_list") { inclusive = false }
                             }
                         } else {
@@ -441,8 +441,8 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                                     scheduleRangeReminders(context, noteId.toInt(), noteText, reminderDateFrom, reminderDateTo, reminderTime)
                                 }
                             }
+                            navController.popBackStack()
                         }
-                        navController.popBackStack()
                     }
                 }
             },
