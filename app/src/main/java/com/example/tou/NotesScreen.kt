@@ -2,6 +2,7 @@ package com.example.tou
 
 //import com.example.tou.Note
 
+import androidx.appcompat.app.AlertDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,6 +55,17 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import com.example.tou.SubtaskEntity
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
 
 @Composable
 fun NotesScreen(navController: NavController) {
@@ -63,6 +75,10 @@ fun NotesScreen(navController: NavController) {
 
     var notes by remember { mutableStateOf(notesFromDb) }
     LaunchedEffect(notesFromDb) { notes = notesFromDb }
+
+    // режим вибору
+    var selectionMode by remember { mutableStateOf(false) }
+    var selectedIds by remember { mutableStateOf(setOf<Int>()) }
 
     val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -79,61 +95,298 @@ fun NotesScreen(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Верхня мінюшка в режимі вибору
+        if (selectionMode) {
+            var showMenu by remember { mutableStateOf(false) }
+            var showTopicDialog by remember { mutableStateOf(false) }
+            var showNewTopicDialog by remember { mutableStateOf(false) }
+            var topicSearch by remember { mutableStateOf("") }
+            var newTopicForSelected by remember { mutableStateOf("") }
+            val allTopics by App.db.topicDao().getAll().collectAsState(initial = emptyList())
+            val filteredTopics = remember(topicSearch, allTopics) {
+                if (topicSearch.isEmpty()) allTopics
+                else allTopics.filter { it.startsWith(topicSearch, ignoreCase = true) }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = {
+                    selectionMode = false
+                    selectedIds = emptySet()
+                }) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Вийти")
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = "${selectedIds.size}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Три крапки
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Більше")
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Виконати") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Color.Green
+                                )
+                            },
+                            onClick = {
+                                showMenu = false
+                                scope.launch {
+                                    selectedIds.forEach { id ->
+                                        val note = notes.find { it.id == id }
+                                        if (note != null) {
+                                            App.db.noteDao().update(
+                                                note.copy(
+                                                    done = true,
+                                                    completedAt = System.currentTimeMillis()
+                                                )
+                                            )
+                                        }
+                                    }
+                                    selectedIds = emptySet()
+                                    selectionMode = false
+                                }
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Створити топік") },
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
+                            },
+                            onClick = {
+                                showMenu = false
+                                showNewTopicDialog = true
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Додати до топіка") },
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                            },
+                            onClick = {
+                                showMenu = false
+                                showTopicDialog = true
+                            }
+                        )
+                    }
+                }
+
+                // Смітник
+                IconButton(onClick = {
+                    scope.launch {
+                        selectedIds.forEach { id ->
+                            val note = notes.find { it.id == id }
+                            if (note != null) App.db.noteDao().delete(note)
+                        }
+                        selectedIds = emptySet()
+                        selectionMode = false
+                    }
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Видалити",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            // Діалог вибору топіку
+            if (showTopicDialog) {
+                AlertDialog(
+                    onDismissRequest = { showTopicDialog = false },
+                    title = { Text("Додати до топіка") },
+                    text = {
+                        Column {
+                            TextField(
+                                value = topicSearch,
+                                onValueChange = { topicSearch = it },
+                                placeholder = { Text("Пошук топіку") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
+                                items(filteredTopics) { topic ->
+                                    TextButton(
+                                        onClick = {
+                                            scope.launch {
+                                                selectedIds.forEach { id ->
+                                                    val note = notes.find { it.id == id }
+                                                    if (note != null) {
+                                                        App.db.noteDao().update(note.copy(topic = topic))
+                                                        ensureTopicExists(topic)
+                                                    }
+                                                }
+                                                selectedIds = emptySet()
+                                                selectionMode = false
+                                                showTopicDialog = false
+                                                topicSearch = ""
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(topic)
+                                    }
+                                }
+                                item {
+                                    OutlinedButton(
+                                        onClick = {
+                                            showTopicDialog = false
+                                            showNewTopicDialog = true
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(end = 4.dp)
+                                        )
+                                        Text("Створити новий топік і зберегти туди")
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showTopicDialog = false; topicSearch = "" }) {
+                            Text("Скасувати")
+                        }
+                    },
+                    dismissButton = {}
+                )
+            }
+
+            // Діалог створення нового топіку
+            if (showNewTopicDialog) {
+                AlertDialog(
+                    onDismissRequest = { showNewTopicDialog = false },
+                    title = { Text("Назва топіку") },
+                    text = {
+                        TextField(
+                            value = newTopicForSelected,
+                            onValueChange = { newTopicForSelected = it },
+                            placeholder = { Text("Введіть назву") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            if (newTopicForSelected.isNotBlank()) {
+                                scope.launch {
+                                    ensureTopicExists(newTopicForSelected.trim())
+                                    selectedIds.forEach { id ->
+                                        val note = notes.find { it.id == id }
+                                        if (note != null) {
+                                            App.db.noteDao().update(
+                                                note.copy(topic = newTopicForSelected.trim())
+                                            )
+                                        }
+                                    }
+                                    selectedIds = emptySet()
+                                    selectionMode = false
+                                    showNewTopicDialog = false
+                                    newTopicForSelected = ""
+                                }
+                            }
+                        }) {
+                            Text("Зберегти")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showNewTopicDialog = false }) {
+                            Text("Скасувати")
+                        }
+                    }
+                )
+            }
+        }
+
         LazyColumn(
             state = lazyListState,
             modifier = Modifier.weight(1f)
         ) {
             items(notes, key = { it.id }) { note ->
                 ReorderableItem(reorderableState, key = note.id) {
+                    val isSelected = note.id in selectedIds
+
                     NoteItem(
                         note = note,
                         onToggleDone = {
-                            scope.launch {
-                                App.db.noteDao().update(
-                                    note.copy(
-                                        done = true,
-                                        completedAt = System.currentTimeMillis()
+                            if (!selectionMode) {
+                                scope.launch {
+                                    App.db.noteDao().update(
+                                        note.copy(
+                                            done = true,
+                                            completedAt = System.currentTimeMillis()
+                                        )
                                     )
-                                )
+                                }
                             }
                         },
                         onDelete = {
                             scope.launch { App.db.noteDao().delete(note) }
                         },
-                        onEdit = { navController.navigate("edit/${note.id}") },
+                        onEdit = {
+                            if (!selectionMode) navController.navigate("edit/${note.id}")
+                        },
                         navController = navController,
-                        dragHandle = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                        selectionMode = selectionMode,
+                        isSelected = isSelected,
+                        onLongPress = {
+                            selectionMode = true
+                            selectedIds = selectedIds + note.id
+                        },
+                        onSelect = {
+                            selectedIds = if (note.id in selectedIds) {
+                                selectedIds - note.id
+                            } else {
+                                selectedIds + note.id
+                            }
+                        },
+                        dragHandle = if (selectionMode) {
+                            {
                                 Icon(
                                     imageVector = Icons.Default.DragHandle,
                                     contentDescription = "Перетягнути",
-                                    modifier = Modifier.draggableHandle()
+                                    modifier = Modifier
+                                        .draggableHandle()
+                                        .padding(end = 4.dp)
                                 )
                             }
-                        }
-                        /*dragHandle = {
-                            Icon(
-                                imageVector = Icons.Default.DragHandle,
-                                contentDescription = "Перетягнути",
-                                modifier = Modifier
-                                    .draggableHandle()
-                                    .padding(end = 4.dp)
-                            )
-                        }*/
+                        } else null
                     )
                 }
             }
         }
 
-        Button(
-            onClick = { navController.navigate("add_note_full") },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Додати нотатку")
+        if (!selectionMode) {
+            Button(
+                onClick = { navController.navigate("add_note_full") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Додати нотатку")
+            }
         }
     }
 }
@@ -199,6 +452,7 @@ fun SubtaskItem(
         }
     }
 }
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteItem(
     note: NoteEntity,
@@ -206,6 +460,10 @@ fun NoteItem(
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     navController: NavController,
+    selectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onLongPress: () -> Unit = {},
+    onSelect: () -> Unit = {},
     dragHandle: @Composable (() -> Unit)? = null
 ) {
     val subtasks by App.db.subtaskDao().getByNote(note.id)
@@ -214,13 +472,24 @@ fun NoteItem(
     val scope = rememberCoroutineScope()
     val noteOverdue = isOverdue(note.date, note.time) && !note.done
 
+    val backgroundColor = when {
+        isSelected -> Color.Green.copy(alpha = 0.15f)
+        noteOverdue -> Color.Red.copy(alpha = 0.1f)
+        else -> Color.Transparent
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            //.clickable { expanded = !expanded }
-            .then(
-                if (noteOverdue) Modifier.background(Color.Red.copy(alpha = 0.1f))
-                else Modifier
+            .background(backgroundColor)
+            .combinedClickable(
+                onClick = {
+                    if (selectionMode) onSelect()
+                    else expanded = !expanded
+                },
+                onLongClick = {
+                    if (!selectionMode) onLongPress()
+                }
             )
             .padding(vertical = 4.dp)
     ) {
@@ -230,10 +499,17 @@ fun NoteItem(
         ) {
             dragHandle?.invoke()
 
-            Checkbox(
-                checked = note.done,
-                onCheckedChange = { onToggleDone() }
-            )
+            if (!selectionMode) {
+                Checkbox(
+                    checked = note.done,
+                    onCheckedChange = { onToggleDone() }
+                )
+            } else {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onSelect() }
+                )
+            }
 
             if (note.emoji.isNotEmpty()) {
                 Box(
@@ -256,64 +532,56 @@ fun NoteItem(
                 style = MaterialTheme.typography.bodyLarge
             )
 
-            if (subtasks.isNotEmpty()) {
-                IconButton(onClick = { expanded = !expanded }) {
+            if (!selectionMode) {
+                if (subtasks.isNotEmpty()) {
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp
+                            else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null
+                        )
+                    }
+                }
+                IconButton(onClick = { onEdit() }) {
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Редагувати")
+                }
+                IconButton(onClick = { onDelete() }) {
                     Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp
-                        else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Видалити",
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
-            }
-            /*
-            // ← стрілочка завжди видима
-            IconButton(onClick = { expanded = !expanded }) {
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp
-                    else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null
-                )
-            }
-            */
-            IconButton(onClick = { onEdit() }) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = "Редагувати")
-            }
-
-            IconButton(onClick = { onDelete() }) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Видалити",
-                    tint = MaterialTheme.colorScheme.error
-                )
             }
         }
 
-        AnimatedVisibility(visible = expanded) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 48.dp)
-            ) {
-                subtasks.forEach { subtask ->
-                    SubtaskItem(
-                        subtask = subtask,
-                        onEdit = { navController.navigate("edit_subtask/${subtask.id}") },
-                        onDelete = {
-                            scope.launch { App.db.subtaskDao().delete(subtask) }
-                        }
-                    )
-                }
-
-                TextButton(
-                    onClick = { navController.navigate("add_subtask/${note.id}") },
-                    modifier = Modifier.fillMaxWidth()
+        if (!selectionMode) {
+            AnimatedVisibility(visible = expanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 48.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    Text("Додати підтаску")
+                    subtasks.forEach { subtask ->
+                        SubtaskItem(
+                            subtask = subtask,
+                            onEdit = { navController.navigate("edit_subtask/${subtask.id}") },
+                            onDelete = {
+                                scope.launch { App.db.subtaskDao().delete(subtask) }
+                            }
+                        )
+                    }
+                    TextButton(
+                        onClick = { navController.navigate("add_subtask/${note.id}") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                        Text("Додати підтаску")
+                    }
                 }
             }
         }
