@@ -95,6 +95,9 @@ class MainActivity : ComponentActivity() {
                         composable("reminders") {
                             RemindersScreen(navController)
                         }
+                        composable("calendar") {
+                            CalendarScreen(navController)
+                        }
                     }
                 }
             }

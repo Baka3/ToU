@@ -108,7 +108,7 @@ fun HomeScreen(navController: NavController) {
             }
 
             Button(
-                onClick = { },
+                onClick = {  navController.navigate("calendar") },
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .padding(vertical = 8.dp)
