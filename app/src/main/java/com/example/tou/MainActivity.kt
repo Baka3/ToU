@@ -98,6 +98,11 @@ class MainActivity : ComponentActivity() {
                         composable("calendar") {
                             CalendarScreen(navController)
                         }
+                        composable("settings") { SettingsScreen(navController) }
+                        composable("settings_language") { LanguageSettingsScreen(navController) }
+                        composable("settings_wallpaper") { WallpaperSettingsScreen(navController) }
+                        composable("settings_notifications") { NotificationsSettingsScreen(navController) }
+                        composable("settings_theme") { ThemeSettingsScreen(navController) }
                     }
                 }
             }

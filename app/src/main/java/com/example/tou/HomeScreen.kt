@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.time.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -33,21 +36,35 @@ import java.util.Locale
 fun HomeScreen(navController: NavController) {
     var currentTime by remember { mutableStateOf("") }
     var currentDate by remember { mutableStateOf("") }
+    val backgroundImage = remember {
+        mutableIntStateOf(getBackgroundImage())
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.home_s2),
+            painter = painterResource(id = backgroundImage.intValue),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop // Картинка розтягнеться на заповнить екран
+            contentScale = ContentScale.Crop
         )
     }
     LaunchedEffect(Unit) {
         while (true) {
             val now = Calendar.getInstance()
-            currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(now.time)
-            currentDate = SimpleDateFormat("EEEE, d MMMM", Locale("uk")).format(now.time)
-            kotlinx.coroutines.delay(1000)
+
+            currentTime = SimpleDateFormat(
+                "HH:mm",
+                Locale.getDefault()
+            ).format(now.time)
+
+            currentDate = SimpleDateFormat(
+                "EEEE, d MMMM",
+                Locale("uk")
+            ).format(now.time)
+
+            backgroundImage.intValue = getBackgroundImage()
+
+            delay(1000)
         }
     }
 
@@ -117,7 +134,7 @@ fun HomeScreen(navController: NavController) {
             }
 
             Button(
-                onClick = { },
+                onClick = { navController.navigate("settings") },
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .padding(vertical = 8.dp)
@@ -125,5 +142,15 @@ fun HomeScreen(navController: NavController) {
                 Text("Налаштування")
             }
         }
+    }
+}
+fun getBackgroundImage(): Int {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+
+    return when (hour) {
+        in 6..11 -> R.drawable.daytime
+        in 12..17 -> R.drawable.fox2
+        in 18..22 -> R.drawable.afternoon1
+        else -> R.drawable.night
     }
 }
