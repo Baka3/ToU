@@ -66,12 +66,13 @@ fun RemindersScreen(navController: NavController) {
                             modifier = Modifier.weight(1f),
                             color = Color.LightGray
                         )
-                        Text(
+                        ScreenHeader(title = "Нагадування", navController = navController)
+                        /*Text(
                             text = dateLabel,
                             modifier = Modifier.padding(horizontal = 12.dp),
                             color = Color.Gray,
                             style = MaterialTheme.typography.labelMedium
-                        )
+                        )*/
                         HorizontalDivider(
                             modifier = Modifier.weight(1f),
                             color = Color.LightGray

@@ -49,6 +49,7 @@ fun CompletedScreen(navController: NavController) {
                             style = MaterialTheme.typography.bodyLarge
                         )
                         if (note.date.isNotEmpty()) {
+                            //ScreenHeader(title = "Виконані таски", navController = navController)
                             Text(
                                 text = "${note.date} ${note.time}".trim(),
                                 color = Color.LightGray,

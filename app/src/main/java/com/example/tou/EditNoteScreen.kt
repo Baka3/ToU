@@ -105,11 +105,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Text(
-            text = "Редагування нотатки",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        ScreenHeader(title = "Редагування нотатки", navController = navController)
 
         // Нотаточка
         Row(
@@ -433,9 +429,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                 scheduleRangeReminders(context, noteId, noteText, reminderDateFrom, reminderDateTo, reminderTime)
                             }
                         }
-                        navController.navigate("notes_list") {
-                            popUpTo("notes_list") { inclusive = false }
-                        }
+                        navController.popBackStack()
                     }
                 }
             },

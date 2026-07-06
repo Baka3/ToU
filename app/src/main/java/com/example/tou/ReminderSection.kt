@@ -61,6 +61,7 @@ fun ReminderSection(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            //ScreenHeader(title = "Нагадування", navController = navController)
             Text(
                 text = "Нагадування",
                 style = MaterialTheme.typography.titleSmall,

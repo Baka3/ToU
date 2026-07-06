@@ -116,10 +116,7 @@ fun TopicsScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Text(
-                    text = "${selectedTopics.size}",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                ScreenHeader(title = "Топіки", navController = navController)
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -227,6 +224,8 @@ fun TopicsScreen(navController: NavController) {
                             } else {
                                 Spacer(modifier = Modifier.width(32.dp))
                             }
+
+                            //ScreenHeader(title = "Топіки", navController = navController)
 
                             Text(
                                 text = topic,

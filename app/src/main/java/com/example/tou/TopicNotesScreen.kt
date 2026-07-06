@@ -23,6 +23,7 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        //ScreenHeader(title = "TopicNotesScreen...", navController = navController)
         Text(
             text = topic,
             style = MaterialTheme.typography.titleLarge,

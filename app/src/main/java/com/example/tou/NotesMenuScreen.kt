@@ -131,28 +131,6 @@ fun NotesMenuScreen(navController: NavController) {
                 )
                 Text("Додати нотаточку")
             }
-            /*
-        // Кнопка з пунктиром
-        OutlinedButton(
-            onClick = { navController.navigate("add_note_full") },
-            modifier = Modifier
-                .fillMaxWidth(0.6f)
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f)),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = Color.Gray
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text("Додати нотаточку")
-        }
-         */
         }
     }
 }

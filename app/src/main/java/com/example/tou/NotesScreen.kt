@@ -412,6 +412,10 @@ fun SubtaskItem(
                 }
             }
         )
+
+        val navController = null
+        //ScreenHeader(title = "Редагування нотатки", navController = navController)
+
         Text(
             text = subtask.title,
             modifier = Modifier

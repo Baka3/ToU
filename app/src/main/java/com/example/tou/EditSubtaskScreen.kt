@@ -98,11 +98,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Text(
-            text = "Редагування підтаски",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        ScreenHeader(title = "Редагування підтаски", navController = navController)
 
         // Назва
         Row(

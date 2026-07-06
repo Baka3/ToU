@@ -19,11 +19,7 @@ fun SettingsScreen(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Налаштування",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        ScreenHeader(title = "Налаштування", navController = navController)
 
         SettingsItem(
             icon = Icons.Default.Language,

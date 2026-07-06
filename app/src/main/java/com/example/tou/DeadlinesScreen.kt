@@ -54,6 +54,9 @@ fun DeadlinesScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+
+            //ScreenHeader(title = "Дедлайни", navController = navController)
+
             grouped.forEach { (date, notesForDate) ->
                 item {
                     Row(
@@ -99,6 +102,7 @@ fun DeadlinesScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (note.emoji.isNotEmpty()) {
+                                //ScreenHeader(title = "Дедлайни", navController = navController)
                                 Text(
                                     text = note.emoji,
                                     modifier = Modifier.padding(end = 8.dp),

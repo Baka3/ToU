@@ -1,22 +1,25 @@
 package com.example.tou
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.tou.ui.theme.ToUTheme
-import androidx.navigation.NavController
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
             private val requestPermissionLauncher = registerForActivityResult(
@@ -34,11 +37,43 @@ class MainActivity : ComponentActivity() {
                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
-            setContent {
-                ToUTheme {
+                setContent {
+                    val context = LocalContext.current
+                    val selectedTheme by AppSettings.getTheme(context).collectAsState(initial = "system")
 
-                    val navController = rememberNavController()
+                    val darkTheme = when (selectedTheme) {
+                        "dark" -> true
+                        "light" -> false
+                        else -> isSystemInDarkTheme()
+                    }
 
+                    val colorScheme = when (selectedTheme) {
+                        "purple" -> if (darkTheme) darkColorScheme(
+                            primary = Color(0xFFD0BCFF),
+                            secondary = Color(0xFFCCC2DC)
+                        ) else lightColorScheme(
+                            primary = Color(0xFF6650A4),
+                            secondary = Color(0xFF625B71)
+                        )
+                        "green" -> if (darkTheme) darkColorScheme(
+                            primary = Color(0xFF9BD472),
+                            secondary = Color(0xFFB5CCB0)
+                        ) else lightColorScheme(
+                            primary = Color(0xFF386A1F),
+                            secondary = Color(0xFF52634D)
+                        )
+                        "blue" -> if (darkTheme) darkColorScheme(
+                            primary = Color(0xFF9ECAFF),
+                            secondary = Color(0xFFBBC7DB)
+                        ) else lightColorScheme(
+                            primary = Color(0xFF0061A4),
+                            secondary = Color(0xFF535F70)
+                        )
+                        else -> if (darkTheme) darkColorScheme() else lightColorScheme()
+                    }
+
+                    MaterialTheme(colorScheme = colorScheme) {
+                        val navController = rememberNavController()
                     NavHost(
                         navController = navController,
                         startDestination = "home"

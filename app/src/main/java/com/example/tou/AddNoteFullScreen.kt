@@ -79,11 +79,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Text(
-            text = if (parentNoteId != null) "Створення підтаски" else "Створення нотатки",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        ScreenHeader(title = "Створення нотатки", navController = navController)
         // Нотаточка
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
