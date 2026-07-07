@@ -1,5 +1,6 @@
 package com.example.tou
 
+import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -8,8 +9,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 
 @Composable
 fun LanguageSettingsScreen(navController: NavController) {
@@ -20,24 +24,28 @@ fun LanguageSettingsScreen(navController: NavController) {
         "es" to "Español"
     )
 
-    var selectedLang by remember { mutableStateOf("uk") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val selectedLang by AppSettings.getLanguage(context).collectAsState(initial = "uk")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Мова",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        ScreenHeader(title = "Мова", navController = navController)
 
         languages.forEach { (code, name) ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { selectedLang = code }
+                    .clickable {
+                        scope.launch {
+                            AppSettings.setLanguage(context, code)
+                            (context as? Activity)?.recreate()
+                        }
+                    }
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -54,7 +62,7 @@ fun LanguageSettingsScreen(navController: NavController) {
                     )
                 }
             }
-            HorizontalDivider(color = androidx.compose.ui.graphics.Color.LightGray.copy(alpha = 0.3f))
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -62,7 +70,7 @@ fun LanguageSettingsScreen(navController: NavController) {
         Text(
             text = "Повна локалізація буде додана в наступному оновленні",
             style = MaterialTheme.typography.bodySmall,
-            color = androidx.compose.ui.graphics.Color.Gray
+            color = Color.Gray
         )
     }
 }

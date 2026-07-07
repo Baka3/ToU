@@ -17,6 +17,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import java.io.File
+
 
 @Composable
 fun AttachmentsSection(
@@ -24,12 +30,34 @@ fun AttachmentsSection(
     onAttachmentsChange: (List<String>) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    val imagePicker = rememberLauncherForActivityResult(
+    var cameraImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraImageUri != null) {
+            onAttachmentsChange((attachments + cameraImageUri.toString()).take(10))
+        }
+    }
+
+    /*val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris ->
         val newPaths = uris.map { it.toString() }
         onAttachmentsChange((attachments + newPaths).take(10))
+    }*/
+
+    var showViewer by remember { mutableStateOf(false) }
+    var pendingImages by remember { mutableStateOf(listOf<String>()) }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            pendingImages = uris.map { it.toString() }
+            showViewer = true
+        }
     }
 
     val filePicker = rememberLauncherForActivityResult(
@@ -39,13 +67,25 @@ fun AttachmentsSection(
         onAttachmentsChange((attachments + newPaths).take(10))
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Показуємо прикріплені файли
-        attachments.forEachIndexed { index, path ->
-            val isImage = path.contains("image") ||
-                    listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
-                        .any { path.lowercase().endsWith(it) }
+    if (showViewer && pendingImages.isNotEmpty()) {
+        ImageViewerScreen(
+            images = pendingImages,
+            onConfirm = { selected ->
+                onAttachmentsChange((attachments + selected).take(10))
+                showViewer = false
+                pendingImages = emptyList()
+            },
+            onDismiss = {
+                showViewer = false
+                pendingImages = emptyList()
+            }
+        )
+    }
 
+    Column(modifier = Modifier.fillMaxWidth()) {
+        attachments.forEachIndexed { index, path ->
+            val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
+                .any { path.lowercase().endsWith(it) } || path.contains("image")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -94,7 +134,27 @@ fun AttachmentsSection(
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false }
-            ) {
+            ) {DropdownMenuItem(
+                text = { Text("Зробити фото") },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
+                },
+                onClick = {
+                    showMenu = false
+                    // створюємо тимчасовий файл для фото
+                    val photoFile = File(
+                        context.cacheDir,
+                        "photo_${System.currentTimeMillis()}.jpg"
+                    )
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.provider",
+                        photoFile
+                    )
+                    cameraImageUri = uri
+                    cameraLauncher.launch(uri)
+                }
+            )
                 DropdownMenuItem(
                     text = { Text("Додати зображення") },
                     leadingIcon = {

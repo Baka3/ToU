@@ -112,7 +112,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Нотаточка", modifier = Modifier.width(100.dp))
+            Text( text = "Нотаточка", modifier = Modifier.width(100.dp))
             TextField(
                 value = noteText,
                 onValueChange = { noteText = it },

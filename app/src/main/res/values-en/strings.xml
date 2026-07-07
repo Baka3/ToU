@@ -1,0 +1,74 @@
+<resources>
+    <string name="app_name">ToU</string>
+
+    <string name="nav_notes">Notes</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="all_tasks">All tasks</string>
+    <string name="deadlines">Deadlines</string>
+    <string name="reminders">Reminders</string>
+    <string name="topics">Topics</string>
+    <string name="shared_notes">Shared notes</string>
+    <string name="completed">Completed</string>
+    <string name="add_note">Add note</string>
+
+    <string name="field_note">Note</string>
+    <string name="field_title">Title</string>
+    <string name="field_deadline">Deadline</string>
+    <string name="field_topic">Topic</string>
+    <string name="field_icon">Icon</string>
+    <string name="field_description">Description</string>
+    <string name="field_subtasks">Subtasks</string>
+
+    <string name="placeholder_topic">Enter or choose topic</string>
+    <string name="placeholder_emoji">Enter emoji</string>
+    <string name="placeholder_date">Choose date</string>
+    <string name="placeholder_time">Choose time</string>
+    <string name="placeholder_topic_search">Search topic</string>
+    <string name="placeholder_topic_name">Enter name</string>
+
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_ok">Ok</string>
+    <string name="btn_add_subtask">+ Add subtask</string>
+    <string name="btn_add_note">Add note</string>
+    <string name="btn_choose_emoji">Choose emoji</string>
+    <string name="btn_change_emoji">Change</string>
+    <string name="btn_add_image">Add image</string>
+    <string name="btn_add_file">Add file</string>
+    <string name="btn_create_topic">Create topic</string>
+    <string name="btn_add_to_topic">Add to topic</string>
+    <string name="btn_mark_done">Mark as done</string>
+    <string name="btn_new_topic_save">Create new topic and save there</string>
+
+    <string name="dialog_add_to_topic">Add to topic</string>
+    <string name="dialog_topic_name">Topic name</string>
+    <string name="dialog_new_topic">New topic</string>
+    <string name="dialog_rename">Rename</string>
+
+    <string name="empty_completed">No completed tasks yet</string>
+    <string name="empty_deadlines">No notes with deadlines</string>
+    <string name="empty_reminders">No active reminders</string>
+    <string name="empty_topics">No topics yet</string>
+    <string name="empty_day">Nothing for this day</string>
+
+    <string name="settings_language">Language</string>
+    <string name="settings_wallpaper">Wallpaper</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_theme">Themes</string>
+    <string name="settings_language_soon">Full localization coming soon</string>
+    <string name="settings_notifications_soon">Notifications — coming soon</string>
+
+    <string name="screen_edit_note">Edit note</string>
+    <string name="screen_edit_subtask">Edit subtask</string>
+    <string name="screen_create_note">Create note</string>
+    <string name="screen_create_subtask">Create subtask</string>
+
+    <string name="cd_delete">Delete</string>
+    <string name="cd_edit">Edit</string>
+    <string name="cd_attach">Attach</string>
+    <string name="cd_overdue_subtasks">Has overdue subtasks</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_add">Add</string>
+</resources>

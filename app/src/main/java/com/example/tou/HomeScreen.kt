@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -121,7 +122,7 @@ fun HomeScreen(navController: NavController) {
                     .fillMaxWidth(0.6f)
                     .padding(vertical = 8.dp)
             ) {
-                Text("Нотаточки")
+                Text(stringResource(R.string.nav_notes))
             }
 
             Button(
@@ -130,7 +131,7 @@ fun HomeScreen(navController: NavController) {
                     .fillMaxWidth(0.6f)
                     .padding(vertical = 8.dp)
             ) {
-                Text("Календар")
+                Text(stringResource(R.string.nav_calendar))
             }
 
             Button(
@@ -139,7 +140,7 @@ fun HomeScreen(navController: NavController) {
                     .fillMaxWidth(0.6f)
                     .padding(vertical = 8.dp)
             ) {
-                Text("Налаштування")
+                Text(stringResource(R.string.nav_settings))
             }
         }
     }

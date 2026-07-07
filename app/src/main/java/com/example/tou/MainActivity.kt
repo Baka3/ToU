@@ -20,6 +20,9 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+
 
 class MainActivity : ComponentActivity() {
             private val requestPermissionLauncher = registerForActivityResult(
@@ -37,6 +40,14 @@ class MainActivity : ComponentActivity() {
                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
+                val savedLang = runBlocking {
+                    AppSettings.getLanguage(this@MainActivity).first()
+                }
+                val config = resources.configuration
+                val locale = java.util.Locale(savedLang)
+                java.util.Locale.setDefault(locale)
+                config.setLocale(locale)
+                resources.updateConfiguration(config, resources.displayMetrics)
                 setContent {
                     val context = LocalContext.current
                     val selectedTheme by AppSettings.getTheme(context).collectAsState(initial = "system")

@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.ui.res.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", parentNoteId: Int? = null) {
@@ -85,7 +86,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Нотаточка", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.nav_notes), modifier = Modifier.width(100.dp))
             TextField(
                 value = noteText,
                 onValueChange = { noteText = it },
@@ -269,8 +270,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
                     }
                 }
-
-        // Зображення + файли
+        /*
         // Опис зі скріпкою
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -349,6 +349,32 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                 }
             }
         }
+        */
+
+        // Опис зі скріпкою
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Box {
+                    TextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        modifier = Modifier.fillMaxWidth().padding(end = 40.dp),
+                        minLines = 3
+                    )
+                    Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                        AttachmentsSection(
+                            attachments = attachments,
+                            onAttachmentsChange = { attachments = it }
+                        )
+                    }
+                }
+            }
+        }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
         if (parentNoteId == null) {
