@@ -4,9 +4,12 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,6 +34,18 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import java.util.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.FileProvider
+import java.io.File
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.RotateRight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,6 +111,35 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
     val filteredTopics = remember(topicText, allTopicsForDropdown) {
         if (topicText.isEmpty()) allTopicsForDropdown
         else allTopicsForDropdown.filter { it.startsWith(topicText, ignoreCase = true) }
+    }
+
+    var showAttachMenu by remember { mutableStateOf(false) }
+    var showViewer by remember { mutableStateOf(false) }
+    var selectedViewerIndex by remember { mutableStateOf(0) }
+    var cameraImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraImageUri != null) {
+            attachments = (attachments + cameraImageUri.toString()).take(10)
+        }
+    }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            attachments = (attachments + uris.map { it.toString() }).take(10)
+            selectedViewerIndex = attachments.size - uris.size
+            showViewer = true
+        }
+    }
+
+    val filePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        attachments = (attachments + uris.map { it.toString() }).take(10)
     }
 
     Column(
@@ -266,50 +310,66 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             }
         }
 
-        // Опис зі скріпкою
+        // Опис
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.Top
         ) {
             Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Box {
-                    TextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        modifier = Modifier.fillMaxWidth().padding(end = 40.dp),
-                        minLines = 3
-                    )
-                    var showMenu by remember { mutableStateOf(false) }
-                    val imagePicker = rememberLauncherForActivityResult(
-                        ActivityResultContracts.GetMultipleContents()
-                    ) { uris -> attachments = (attachments + uris.map { it.toString() }).take(10) }
-                    val filePicker = rememberLauncherForActivityResult(
-                        ActivityResultContracts.GetMultipleContents()
-                    ) { uris -> attachments = (attachments + uris.map { it.toString() }).take(10) }
-
-                    Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
-                        }
-                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                            DropdownMenuItem(
-                                text = { Text("Додати зображення") },
-                                onClick = { showMenu = false; imagePicker.launch("image/*") }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Додати файл") },
-                                onClick = { showMenu = false; filePicker.launch("*/*") }
-                            )
-                        }
-                    }
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.weight(1f),
+                minLines = 3
+            )
+            // скріпка справа за полем
+            Box {
+                IconButton(onClick = { showAttachMenu = true }) {
+                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
                 }
+                DropdownMenu(
+                    expanded = showAttachMenu,
+                    onDismissRequest = { showAttachMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Зробити фото") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", photoFile)
+                            cameraImageUri = uri
+                            cameraLauncher.launch(uri)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Додати зображення") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
+                        onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Додати файл") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.AttachFile, contentDescription = null) },
+                        onClick = { showAttachMenu = false; filePicker.launch("*/*") }
+                    )
+                }
+            }
+        }
 
+// Прикріплені файли ЗНИЗУ поля окремо
+        if (attachments.isNotEmpty()) {
+            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 attachments.forEachIndexed { index, path ->
                     val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
                         .any { path.lowercase().endsWith(it) } || path.contains("image")
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedViewerIndex = index
+                                showViewer = true
+                            }
+                            .padding(vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isImage) {
@@ -438,4 +498,17 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             Text("Зберегти")
         }
     }
+
+    if (showViewer && attachments.isNotEmpty()) {
+        ImageViewerDialog(
+            images = attachments,
+            initialIndex = selectedViewerIndex.coerceIn(0, attachments.size - 1),
+            onDismiss = { showViewer = false },
+            onDelete = { index ->
+                attachments = attachments.toMutableList().also { it.removeAt(index) }
+                if (attachments.isEmpty()) showViewer = false
+            }
+        )
+    }
+
 }

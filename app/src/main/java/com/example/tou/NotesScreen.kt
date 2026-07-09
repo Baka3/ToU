@@ -413,7 +413,7 @@ fun SubtaskItem(
             }
         )
 
-        val navController = null
+        //val navController = null
         //ScreenHeader(title = "Редагування нотатки", navController = navController)
 
         Text(

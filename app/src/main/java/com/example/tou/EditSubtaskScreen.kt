@@ -27,6 +27,16 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import java.util.*
+import androidx.core.content.FileProvider
+import java.io.File
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.RotateRight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +100,35 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
         calendar.get(Calendar.MINUTE),
         true
     )
+
+    var showAttachMenu by remember { mutableStateOf(false) }
+    var showViewer by remember { mutableStateOf(false) }
+    var selectedViewerIndex by remember { mutableStateOf(0) }
+    var cameraImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraImageUri != null) {
+            attachments = (attachments + cameraImageUri.toString()).take(10)
+        }
+    }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            attachments = (attachments + uris.map { it.toString() }).take(10)
+            selectedViewerIndex = attachments.size - uris.size
+            showViewer = true
+        }
+    }
+
+    val filePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        attachments = (attachments + uris.map { it.toString() }).take(10)
+    }
 
     Column(
         modifier = Modifier
@@ -230,64 +269,92 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                 TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
             }
         }
-        // Зображення
-        // Вкладення — скріпка в рядку з описом
+        // Опис
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.Top
         ) {
             Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
-            Box(modifier = Modifier.weight(1f)) {
-                TextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
-                )
-                // скріпка у верхньому правому куті поля опису
-                Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                    AttachmentsSection(
-                        attachments = attachments,
-                        onAttachmentsChange = { attachments = it }
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.weight(1f),
+                minLines = 3
+            )
+            // скріпка справа за полем
+            Box {
+                IconButton(onClick = { showAttachMenu = true }) {
+                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
+                }
+                DropdownMenu(
+                    expanded = showAttachMenu,
+                    onDismissRequest = { showAttachMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Зробити фото") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", photoFile)
+                            cameraImageUri = uri
+                            cameraLauncher.launch(uri)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Додати зображення") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
+                        onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Додати файл") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.AttachFile, contentDescription = null) },
+                        onClick = { showAttachMenu = false; filePicker.launch("*/*") }
                     )
                 }
             }
         }
 
-// показуємо прикріплені файли під описом якщо є
+// Прикріплені файли ЗНИЗУ поля окремо
         if (attachments.isNotEmpty()) {
-            attachments.forEachIndexed { index, path ->
-                val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
-                    .any { path.lowercase().endsWith(it) } || path.contains("image")
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (isImage) {
-                        AsyncImage(
-                            model = path,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            contentScale = ContentScale.Crop
+            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                attachments.forEachIndexed { index, path ->
+                    val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
+                        .any { path.lowercase().endsWith(it) } || path.contains("image")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedViewerIndex = index
+                                showViewer = true
+                            }
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (isImage) {
+                            AsyncImage(
+                                model = path,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AttachFile,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp).padding(8.dp)
+                            )
+                        }
+                        Text(
+                            text = path.substringAfterLast("/"),
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                            maxLines = 1
                         )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.AttachFile,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp).padding(8.dp)
-                        )
-                    }
-                    Text(
-                        text = path.substringAfterLast("/"),
-                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                        maxLines = 1
-                    )
-                    IconButton(onClick = {
-                        attachments = attachments.toMutableList().also { it.removeAt(index) }
-                    }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
+                        IconButton(onClick = {
+                            attachments = attachments.toMutableList().also { it.removeAt(index) }
+                        }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
+                        }
                     }
                 }
             }
@@ -347,5 +414,16 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
         ) {
             Text("Зберегти")
         }
+    }
+    if (showViewer && attachments.isNotEmpty()) {
+        ImageViewerDialog(
+            images = attachments,
+            initialIndex = selectedViewerIndex.coerceIn(0, attachments.size - 1),
+            onDismiss = { showViewer = false },
+            onDelete = { index ->
+                attachments = attachments.toMutableList().also { it.removeAt(index) }
+                if (attachments.isEmpty()) showViewer = false
+            }
+        )
     }
 }

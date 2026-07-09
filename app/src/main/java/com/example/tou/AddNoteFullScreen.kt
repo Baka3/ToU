@@ -6,29 +6,61 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
-import java.util.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
-import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.launch
+import java.io.File
+import java.util.Calendar
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", parentNoteId: Int? = null) {
@@ -73,6 +105,60 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
     var reminderTime by remember { mutableStateOf("") }
     var reminderDateFrom by remember { mutableStateOf("") }
     var reminderDateTo by remember { mutableStateOf("") }
+
+    var showAttachMenu by remember { mutableStateOf(false) }
+    var showViewer by remember { mutableStateOf(false) }
+    var selectedViewerIndex by remember { mutableStateOf(0) }
+    var cameraImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraImageUri != null) {
+            attachments = (attachments + cameraImageUri.toString()).take(10)
+        }
+    }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        uris.forEach { uri ->
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) { }
+        }
+        attachments = (attachments + uris.map { it.toString() }).take(10)
+    }
+
+    val filePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        uris.forEach { uri ->
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) { }
+        }
+        attachments = (attachments + uris.map { it.toString() }).take(10)
+    }
+
+    if (showViewer && attachments.isNotEmpty()) {
+        ImageViewerDialog(
+            images = attachments,
+            initialIndex = selectedViewerIndex.coerceIn(0, attachments.size - 1),
+            onDismiss = { showViewer = false },
+            onDelete = { index ->
+                attachments = attachments.toMutableList().also { it.removeAt(index) }
+                if (attachments.isEmpty()) showViewer = false
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -270,55 +356,65 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
                     }
                 }
-        /*
-        // Опис зі скріпкою
+        // Опис
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.Top
         ) {
             Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Box {
-                    TextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        modifier = Modifier.fillMaxWidth().padding(end = 40.dp), // місце для скріпки
-                        minLines = 3
-                    )
-                    var showMenu by remember { mutableStateOf(false) }
-                    val imagePicker = rememberLauncherForActivityResult(
-                        ActivityResultContracts.GetMultipleContents()
-                    ) { uris -> attachments = (attachments + uris.map { it.toString() }).take(10) }
-                    val filePicker = rememberLauncherForActivityResult(
-                        ActivityResultContracts.GetMultipleContents()
-                    ) { uris -> attachments = (attachments + uris.map { it.toString() }).take(10) }
-
-                    Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
-                        }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Додати зображення") },
-                                onClick = { showMenu = false; imagePicker.launch("image/*") }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Додати файл") },
-                                onClick = { showMenu = false; filePicker.launch("*/*") }
-                            )
-                        }
-                    }
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.weight(1f),
+                minLines = 3
+            )
+            // скріпка справа за полем
+            Box {
+                IconButton(onClick = { showAttachMenu = true }) {
+                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
                 }
+                DropdownMenu(
+                    expanded = showAttachMenu,
+                    onDismissRequest = { showAttachMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Зробити фото") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", photoFile)
+                            cameraImageUri = uri
+                            cameraLauncher.launch(uri)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Додати зображення") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
+                        onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Додати файл") },
+                        leadingIcon = { Icon(imageVector = Icons.Default.AttachFile, contentDescription = null) },
+                        onClick = { showAttachMenu = false; filePicker.launch("*/*") }
+                    )
+                }
+            }
+        }
 
-                // Прикріплені файли під полем опису
+// Прикріплені файли ЗНИЗУ поля окремо
+        if (attachments.isNotEmpty()) {
+            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 attachments.forEachIndexed { index, path ->
-                    val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
-                        .any { path.lowercase().endsWith(it) } || path.contains("image")
+                    val isImage = isImagePath(path)
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedViewerIndex = index
+                                showViewer = true
+                            }
+                            .padding(vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isImage) {
@@ -345,31 +441,6 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         }) {
                             Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
                         }
-                    }
-                }
-            }
-        }
-        */
-
-        // Опис зі скріпкою
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Box {
-                    TextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        modifier = Modifier.fillMaxWidth().padding(end = 40.dp),
-                        minLines = 3
-                    )
-                    Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                        AttachmentsSection(
-                            attachments = attachments,
-                            onAttachmentsChange = { attachments = it }
-                        )
                     }
                 }
             }
