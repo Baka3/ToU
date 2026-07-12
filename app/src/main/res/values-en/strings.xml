@@ -21,17 +21,19 @@
     <string name="field_description">Description</string>
     <string name="field_subtasks">Subtasks</string>
 
+    <string name="placeholder_enter_note">Enter a note</string>
     <string name="placeholder_topic">Enter or choose topic</string>
     <string name="placeholder_emoji">Enter emoji</string>
     <string name="placeholder_date">Choose date</string>
     <string name="placeholder_time">Choose time</string>
     <string name="placeholder_topic_search">Search topic</string>
     <string name="placeholder_topic_name">Enter name</string>
+    <string name="placeholder_enter_description">Enter description</string>
 
     <string name="btn_save">Save</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_ok">Ok</string>
-    <string name="btn_add_subtask">+ Add subtask</string>
+    <string name="btn_add_subtask">Add subtask</string>
     <string name="btn_add_note">Add note</string>
     <string name="btn_choose_emoji">Choose emoji</string>
     <string name="btn_change_emoji">Change</string>
@@ -71,4 +73,7 @@
     <string name="cd_overdue_subtasks">Has overdue subtasks</string>
     <string name="cd_back">Back</string>
     <string name="cd_add">Add</string>
+
+    <string name="take_photo">Take photo</string>
+    <string name="no_name">Untitled</string>
 </resources>

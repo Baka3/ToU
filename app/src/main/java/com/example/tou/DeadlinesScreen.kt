@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -46,7 +47,7 @@ fun DeadlinesScreen(navController: NavController) {
 
     if (grouped.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Немає нотаточок з термінами", color = Color.Gray)
+            Text(stringResource(R.string.empty_deadlines), color = Color.Gray)
         }
     } else {
         LazyColumn(
@@ -140,7 +141,7 @@ fun DeadlinesScreen(navController: NavController) {
                             if (hasOverdueSubtask && !noteOverdue && subtasksWithDate.isNotEmpty()) {
                                 Icon(
                                     imageVector = Icons.Default.Warning,
-                                    contentDescription = "Є просрочені підтаски",
+                                    contentDescription = stringResource(R.string.cd_overdue_subtasks),
                                     tint = Color.Red,
                                     modifier = Modifier
                                         .size(18.dp)

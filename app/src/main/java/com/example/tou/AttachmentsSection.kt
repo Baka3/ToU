@@ -20,6 +20,7 @@ import coil.compose.AsyncImage
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
 import java.io.File
 
@@ -118,7 +119,7 @@ fun AttachmentsSection(
                 IconButton(onClick = {
                     onAttachmentsChange(attachments.toMutableList().also { it.removeAt(index) })
                 }) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                 }
             }
         }
@@ -128,14 +129,14 @@ fun AttachmentsSection(
             IconButton(onClick = { showMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.AttachFile,
-                    contentDescription = "Прикріпити"
+                    contentDescription = stringResource(R.string.cd_attach)
                 )
             }
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false }
             ) {DropdownMenuItem(
-                text = { Text("Зробити фото") },
+                text = { Text(stringResource(R.string.take_photo)) },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
                 },
@@ -156,7 +157,7 @@ fun AttachmentsSection(
                 }
             )
                 DropdownMenuItem(
-                    text = { Text("Додати зображення") },
+                    text = { Text(stringResource(R.string.btn_add_image)) },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Image, contentDescription = null)
                     },
@@ -166,7 +167,7 @@ fun AttachmentsSection(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Додати файл") },
+                    text = { Text(stringResource(R.string.btn_add_file)) },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.AttachFile, contentDescription = null)
                     },

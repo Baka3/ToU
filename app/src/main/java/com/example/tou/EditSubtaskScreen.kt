@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -279,7 +280,10 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                 value = description,
                 onValueChange = { description = it },
                 modifier = Modifier.weight(1f),
-                minLines = 3
+                minLines = 3,
+                placeholder = {
+                    Text(text = stringResource(R.string.placeholder_enter_description))
+                }
             )
             // скріпка справа за полем
             Box {

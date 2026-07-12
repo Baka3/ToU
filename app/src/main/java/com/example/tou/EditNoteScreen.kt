@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,14 +150,14 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        ScreenHeader(title = "Редагування нотатки", navController = navController)
+        ScreenHeader(title = stringResource(R.string.screen_edit_note), navController = navController)
 
         // Нотаточка
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text( text = "Нотаточка", modifier = Modifier.width(100.dp))
+            Text( text = stringResource(R.string.nav_notes), modifier = Modifier.width(100.dp))
             TextField(
                 value = noteText,
                 onValueChange = { noteText = it },
@@ -170,7 +171,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Термін", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.deadlines), modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -181,14 +182,14 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-                            text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
+                            text = if (selectedDate.isEmpty()) stringResource(R.string.placeholder_date) else selectedDate,
                             modifier = Modifier.padding(start = 16.dp),
                             color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
                         )
                     }
                     if (selectedDate.isNotEmpty()) {
                         IconButton(onClick = { selectedDate = ""; selectedTime = "" }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити")
+                            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                         }
                     }
                 }
@@ -203,14 +204,14 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                             contentAlignment = Alignment.CenterStart
                         ) {
                             Text(
-                                text = if (selectedTime.isEmpty()) "Оберіть час" else selectedTime,
+                                text = if (selectedTime.isEmpty()) stringResource(R.string.placeholder_time) else selectedTime,
                                 modifier = Modifier.padding(start = 16.dp),
                                 color = if (selectedTime.isEmpty()) Color.Gray else Color.Unspecified
                             )
                         }
                         if (selectedTime.isNotEmpty()) {
                             IconButton(onClick = { selectedTime = "" }) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити час")
+                                Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                             }
                         }
                     }
@@ -244,7 +245,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Топік", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.field_topic), modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
                 ExposedDropdownMenuBox(
                     expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
@@ -255,7 +256,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                         onValueChange = { topicText = it; showTopicDropdown = true },
                         modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, true),
                         singleLine = true,
-                        placeholder = { Text("Введіть або оберіть топік") },
+                        placeholder = { Text(stringResource(R.string.placeholder_topic)) },
                         trailingIcon = {
                             if (allTopicsForDropdown.isNotEmpty()) {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = showTopicDropdown)
@@ -283,13 +284,13 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Іконка", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.field_icon), modifier = Modifier.width(100.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 if (selectedEmoji.isNotEmpty()) {
                     Text(text = selectedEmoji, fontSize = 32.sp, modifier = Modifier.padding(end = 8.dp))
                 }
                 OutlinedButton(onClick = { showEmojiField = !showEmojiField }) {
-                    Text(if (selectedEmoji.isEmpty()) "Обрати емодзі" else "Змінити")
+                    Text(if (selectedEmoji.isEmpty()) stringResource(R.string.btn_choose_emoji) else stringResource(R.string.btn_change_emoji))
                 }
             }
         }
@@ -303,10 +304,10 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                     value = selectedEmoji,
                     onValueChange = { if (it.length <= 2) selectedEmoji = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Введіть емодзі") },
+                    placeholder = { Text(stringResource(R.string.placeholder_emoji)) },
                     singleLine = true
                 )
-                TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
+                TextButton(onClick = { showEmojiField = false }) { Text(stringResource(R.string.btn_ok)) }
             }
         }
 
@@ -315,24 +316,27 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
+            Text(text = stringResource(R.string.field_description), modifier = Modifier.width(100.dp).padding(top = 16.dp))
             TextField(
                 value = description,
                 onValueChange = { description = it },
                 modifier = Modifier.weight(1f),
-                minLines = 3
+                minLines = 3,
+                placeholder = {
+                    Text(text = stringResource(R.string.placeholder_enter_description))
+                }
             )
             // скріпка справа за полем
             Box {
                 IconButton(onClick = { showAttachMenu = true }) {
-                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
+                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = stringResource(R.string.cd_attach))
                 }
                 DropdownMenu(
                     expanded = showAttachMenu,
                     onDismissRequest = { showAttachMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Зробити фото") },
+                        text = { Text(stringResource(R.string.take_photo)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
                         onClick = {
                             showAttachMenu = false
@@ -343,12 +347,12 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Додати зображення") },
+                        text = { Text(stringResource(R.string.btn_add_image)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
                         onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
                     )
                     DropdownMenuItem(
-                        text = { Text("Додати файл") },
+                        text = { Text(stringResource(R.string.btn_add_file)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.AttachFile, contentDescription = null) },
                         onClick = { showAttachMenu = false; filePicker.launch("*/*") }
                     )
@@ -394,7 +398,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                         IconButton(onClick = {
                             attachments = attachments.toMutableList().also { it.removeAt(index) }
                         }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
+                            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                         }
                     }
                 }
@@ -404,7 +408,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         // Підтаски
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Підтаски",
+            text = stringResource(R.string.field_subtasks),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(vertical = 4.dp)
         )
@@ -438,12 +442,12 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                     }
                 )
                 IconButton(onClick = { navController.navigate("edit_subtask/${subtask.id}") }) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Редагувати", modifier = Modifier.size(18.dp))
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.cd_edit), modifier = Modifier.size(18.dp))
                 }
                 IconButton(onClick = {
                     scope.launch { App.db.subtaskDao().delete(subtask) }
                 }) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Видалити", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.error)
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete), modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -453,7 +457,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
-            Text("+ Додати підтаску")
+            Text(stringResource(R.string.btn_add_subtask))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -495,7 +499,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Зберегти")
+            Text(stringResource(R.string.btn_save))
         }
     }
 

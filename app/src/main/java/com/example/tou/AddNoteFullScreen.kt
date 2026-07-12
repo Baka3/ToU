@@ -166,7 +166,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        ScreenHeader(title = "Створення нотатки", navController = navController)
+        ScreenHeader(title = stringResource(R.string.screen_create_note), navController = navController)
         // Нотаточка
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -177,7 +177,10 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                 value = noteText,
                 onValueChange = { noteText = it },
                 modifier = Modifier.weight(1f),
-                singleLine = true
+                singleLine = true,
+                placeholder = {
+                    Text(text = stringResource(R.string.placeholder_enter_note))
+                }
             )
         }
 
@@ -186,7 +189,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Термін", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.deadlines), modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -197,14 +200,14 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-                            text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
+                            text = if (selectedDate.isEmpty()) stringResource(R.string.placeholder_date) else selectedDate,
                             modifier = Modifier.padding(start = 16.dp),
                             color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
                         )
                     }
                     if (selectedDate.isNotEmpty()) {
                         IconButton(onClick = { selectedDate = ""; selectedTime = "" }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити термін")
+                            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                         }
                     }
                 }
@@ -220,14 +223,14 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                             contentAlignment = Alignment.CenterStart
                         ) {
                             Text(
-                                text = if (selectedTime.isEmpty()) "Оберіть час" else selectedTime,
+                                text = if (selectedTime.isEmpty()) stringResource(R.string.placeholder_time) else selectedTime,
                                 modifier = Modifier.padding(start = 16.dp),
                                 color = if (selectedTime.isEmpty()) Color.Gray else Color.Unspecified
                             )
                         }
                         if (selectedTime.isNotEmpty()) {
                             IconButton(onClick = { selectedTime = "" }) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити час")
+                                Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                             }
                         }
                     }
@@ -274,7 +277,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Топік", modifier = Modifier.width(100.dp))
+                    Text(text = stringResource(R.string.field_topic), modifier = Modifier.width(100.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         ExposedDropdownMenuBox(
                             expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
@@ -290,7 +293,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                                     .fillMaxWidth()
                                     .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                                 singleLine = true,
-                                placeholder = { Text("Введіть або оберіть топік") },
+                                placeholder = { Text(stringResource(R.string.placeholder_topic)) },
                                 trailingIcon = {
                                     if (allAvailableTopics.isNotEmpty()) {
                                         ExposedDropdownMenuDefaults.TrailingIcon(
@@ -323,7 +326,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Іконка", modifier = Modifier.width(100.dp))
+                    Text(text = stringResource(R.string.field_icon), modifier = Modifier.width(100.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
@@ -336,7 +339,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                             )
                         }
                         OutlinedButton(onClick = { showEmojiField = !showEmojiField }) {
-                            Text(if (selectedEmoji.isEmpty()) "Обрати емодзі" else "Змінити")
+                            Text(if (selectedEmoji.isEmpty()) stringResource(R.string.btn_choose_emoji) else stringResource(R.string.btn_change_emoji))
                         }
                     }
                 }
@@ -350,10 +353,10 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                             value = selectedEmoji,
                             onValueChange = { if (it.length <= 2) selectedEmoji = it },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text("Введіть емодзі") },
+                            placeholder = { Text(stringResource(R.string.placeholder_emoji)) },
                             singleLine = true
                         )
-                        TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
+                        TextButton(onClick = { showEmojiField = false }) { Text(stringResource(R.string.btn_ok)) }
                     }
                 }
         // Опис
@@ -361,24 +364,27 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
+            Text(text = stringResource(R.string.field_description), modifier = Modifier.width(100.dp).padding(top = 16.dp))
             TextField(
                 value = description,
                 onValueChange = { description = it },
                 modifier = Modifier.weight(1f),
-                minLines = 3
+                minLines = 3,
+                placeholder = {
+                    Text(text = stringResource(R.string.placeholder_enter_description))
+                }
             )
             // скріпка справа за полем
             Box {
                 IconButton(onClick = { showAttachMenu = true }) {
-                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
+                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = stringResource(R.string.cd_attach))
                 }
                 DropdownMenu(
                     expanded = showAttachMenu,
                     onDismissRequest = { showAttachMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Зробити фото") },
+                        text = { Text(stringResource(R.string.take_photo)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
                         onClick = {
                             showAttachMenu = false
@@ -389,12 +395,12 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Додати зображення") },
+                        text = { Text(stringResource(R.string.btn_add_image)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
                         onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
                     )
                     DropdownMenuItem(
-                        text = { Text("Додати файл") },
+                        text = { Text(stringResource(R.string.btn_add_file)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.AttachFile, contentDescription = null) },
                         onClick = { showAttachMenu = false; filePicker.launch("*/*") }
                     )
@@ -439,7 +445,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         IconButton(onClick = {
                             attachments = attachments.toMutableList().also { it.removeAt(index) }
                         }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
+                            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                         }
                     }
                 }
@@ -476,7 +482,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("+ Додати підтаску")
+                Text(stringResource(R.string.btn_add_subtask))
             }
         }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -541,7 +547,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Зберегти")
+            Text(stringResource(R.string.btn_save))
         }
     }
 }
