@@ -11,7 +11,9 @@ fun scheduleReminder(
     noteId: Int,
     noteTitle: String,
     date: String,
-    time: String
+    time: String,
+    deadline: String = "",
+    description: String = ""
 ) {
     if (date.isEmpty() || time.isEmpty()) return
 
@@ -31,6 +33,8 @@ fun scheduleReminder(
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             putExtra("title", noteTitle)
             putExtra("noteId", noteId)
+            putExtra("deadline", deadline)
+            putExtra("description", description)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
@@ -39,11 +43,27 @@ fun scheduleReminder(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            pendingIntent
-        )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.timeInMillis,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.timeInMillis,
+                    pendingIntent
+                )
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
+        }
     } catch (e: Exception) {
         e.printStackTrace()
     }
@@ -55,7 +75,9 @@ fun scheduleRangeReminders(
     noteTitle: String,
     dateFrom: String,
     dateTo: String,
-    time: String
+    time: String,
+    deadline: String = "",
+    description: String = ""
 ) {
     if (dateFrom.isEmpty() || dateTo.isEmpty() || time.isEmpty()) return
 
@@ -90,6 +112,8 @@ fun scheduleRangeReminders(
                 val intent = Intent(context, ReminderReceiver::class.java).apply {
                     putExtra("title", noteTitle)
                     putExtra("noteId", noteId)
+                    putExtra("deadline", deadline)
+                    putExtra("description", description)
                 }
                 val pendingIntent = PendingIntent.getBroadcast(
                     context,
@@ -97,11 +121,27 @@ fun scheduleRangeReminders(
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    trigger.timeInMillis,
-                    pendingIntent
-                )
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                    if (alarmManager.canScheduleExactAlarms()) {
+                        alarmManager.setExactAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            trigger.timeInMillis,
+                            pendingIntent
+                        )
+                    } else {
+                        alarmManager.setAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            trigger.timeInMillis,
+                            pendingIntent
+                        )
+                    }
+                } else {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        trigger.timeInMillis,
+                        pendingIntent
+                    )
+                }
             }
 
             current.add(Calendar.DAY_OF_MONTH, 1)

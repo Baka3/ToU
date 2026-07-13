@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,7 +36,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.ui.res.stringResource
 
@@ -101,7 +105,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
         calendar.get(Calendar.MINUTE),
         true
     )
-
+    var showDoodle by remember { mutableStateOf(false) }
     var showAttachMenu by remember { mutableStateOf(false) }
     var showViewer by remember { mutableStateOf(false) }
     var selectedViewerIndex by remember { mutableStateOf(0) }
@@ -131,6 +135,16 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
         attachments = (attachments + uris.map { it.toString() }).take(10)
     }
 
+    if (showDoodle) {
+        DoodleScreen(
+            onSave = { path ->
+                attachments = (attachments + path).take(10)
+                showDoodle = false
+            },
+            onDismiss = { showDoodle = false }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -138,14 +152,14 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        ScreenHeader(title = "Редагування підтаски", navController = navController)
+        ScreenHeader(title = stringResource(R.string.screen_edit_subtask), navController = navController)
 
         // Назва
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Назва", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.nav_notes), modifier = Modifier.width(100.dp))
             TextField(
                 value = title,
                 onValueChange = { title = it },
@@ -159,7 +173,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Термін", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.deadlines), modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -170,14 +184,14 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-                            text = if (selectedDate.isEmpty()) "Оберіть дату" else selectedDate,
+                            text = if (selectedDate.isEmpty()) stringResource(R.string.placeholder_date) else selectedDate,
                             modifier = Modifier.padding(start = 16.dp),
                             color = if (selectedDate.isEmpty()) Color.Gray else Color.Unspecified
                         )
                     }
                     if (selectedDate.isNotEmpty()) {
                         IconButton(onClick = { selectedDate = ""; selectedTime = "" }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Очистити")
+                            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                         }
                     }
                 }
@@ -191,7 +205,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-                            text = if (selectedTime.isEmpty()) "Оберіть час" else selectedTime,
+                            text = if (selectedTime.isEmpty()) stringResource(R.string.placeholder_time) else selectedTime,
                             modifier = Modifier.padding(start = 16.dp),
                             color = if (selectedTime.isEmpty()) Color.Gray else Color.Unspecified
                         )
@@ -205,7 +219,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Топік", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.field_topic), modifier = Modifier.width(100.dp))
             Column(modifier = Modifier.weight(1f)) {
                 ExposedDropdownMenuBox(
                     expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
@@ -216,7 +230,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                         onValueChange = { topicText = it; showTopicDropdown = true },
                         modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, true),
                         singleLine = true,
-                        placeholder = { Text("Введіть або оберіть топік") },
+                        placeholder = { Text(stringResource(R.string.placeholder_topic)) },
                         trailingIcon = {
                             if (allTopicsForDropdown.isNotEmpty()) {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = showTopicDropdown)
@@ -244,13 +258,13 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Іконка", modifier = Modifier.width(100.dp))
+            Text(text = stringResource(R.string.field_icon), modifier = Modifier.width(100.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 if (selectedEmoji.isNotEmpty()) {
                     Text(text = selectedEmoji, fontSize = 32.sp, modifier = Modifier.padding(end = 8.dp))
                 }
                 OutlinedButton(onClick = { showEmojiField = !showEmojiField }) {
-                    Text(if (selectedEmoji.isEmpty()) "Обрати емодзі" else "Змінити")
+                    Text(if (selectedEmoji.isEmpty()) stringResource(R.string.btn_choose_emoji) else stringResource(R.string.btn_change_emoji))
                 }
             }
         }
@@ -264,10 +278,10 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                     value = selectedEmoji,
                     onValueChange = { if (it.length <= 2) selectedEmoji = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Введіть емодзі") },
+                    placeholder = { Text(stringResource(R.string.placeholder_emoji)) },
                     singleLine = true
                 )
-                TextButton(onClick = { showEmojiField = false }) { Text("Ок") }
+                TextButton(onClick = { showEmojiField = false }) { Text(stringResource(R.string.btn_ok)) }
             }
         }
         // Опис
@@ -275,7 +289,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Text(text = "Опис", modifier = Modifier.width(100.dp).padding(top = 16.dp))
+            Text(text = stringResource(R.string.field_description), modifier = Modifier.width(100.dp).padding(top = 16.dp))
             TextField(
                 value = description,
                 onValueChange = { description = it },
@@ -295,7 +309,15 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                     onDismissRequest = { showAttachMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Зробити фото") },
+                        text = { Text(stringResource(R.string.doodle)) },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Draw, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            showDoodle = true
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.take_photo)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
                         onClick = {
                             showAttachMenu = false
@@ -306,12 +328,12 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Додати зображення") },
+                        text = { Text(stringResource(R.string.btn_add_image)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
                         onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
                     )
                     DropdownMenuItem(
-                        text = { Text("Додати файл") },
+                        text = { Text(stringResource(R.string.btn_add_file)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.AttachFile, contentDescription = null) },
                         onClick = { showAttachMenu = false; filePicker.launch("*/*") }
                     )
@@ -323,8 +345,9 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
         if (attachments.isNotEmpty()) {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 attachments.forEachIndexed { index, path ->
-                    val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
-                        .any { path.lowercase().endsWith(it) } || path.contains("image")
+                    val isImage = isImagePath(path)
+                    val isVideo = isVideoPath(path)
+                    val isAudio = isAudioPath(path)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -342,6 +365,35 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                                 modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
                                 contentScale = ContentScale.Crop
                             )
+                        } else if (isVideo) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color.Black),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PlayCircle,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        } else if (isAudio) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         } else {
                             Icon(
                                 imageVector = Icons.Default.AttachFile,
@@ -357,7 +409,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                         IconButton(onClick = {
                             attachments = attachments.toMutableList().also { it.removeAt(index) }
                         }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Видалити")
+                            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
                         }
                     }
                 }
@@ -416,7 +468,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Зберегти")
+            Text(stringResource(R.string.btn_save))
         }
     }
     if (showViewer && attachments.isNotEmpty()) {

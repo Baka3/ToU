@@ -47,6 +47,12 @@ import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.ui.res.stringResource
+import androidx.compose.material.icons.filled.AutoFixNormal
+import androidx.compose.material.icons.filled.Draw
+import androidx.compose.material.icons.filled.LinearScale
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Undo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,6 +120,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         else allTopicsForDropdown.filter { it.startsWith(topicText, ignoreCase = true) }
     }
 
+    var showDoodle by remember { mutableStateOf(false) }
     var showAttachMenu by remember { mutableStateOf(false) }
     var showViewer by remember { mutableStateOf(false) }
     var selectedViewerIndex by remember { mutableStateOf(0) }
@@ -141,6 +148,16 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         ActivityResultContracts.GetMultipleContents()
     ) { uris ->
         attachments = (attachments + uris.map { it.toString() }).take(10)
+    }
+
+    if (showDoodle) {
+        DoodleScreen(
+            onSave = { path ->
+                attachments = (attachments + path).take(10)
+                showDoodle = false
+            },
+            onDismiss = { showDoodle = false }
+        )
     }
 
     Column(
@@ -336,6 +353,14 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                     onDismissRequest = { showAttachMenu = false }
                 ) {
                     DropdownMenuItem(
+                        text = { Text(stringResource(R.string.doodle)) },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Draw, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            showDoodle = true
+                        }
+                    )
+                    DropdownMenuItem(
                         text = { Text(stringResource(R.string.take_photo)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
                         onClick = {
@@ -364,8 +389,9 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
         if (attachments.isNotEmpty()) {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 attachments.forEachIndexed { index, path ->
-                    val isImage = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp")
-                        .any { path.lowercase().endsWith(it) } || path.contains("image")
+                    val isImage = isImagePath(path)
+                    val isVideo = isVideoPath(path)
+                    val isAudio = isAudioPath(path)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -383,6 +409,35 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                 modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
                                 contentScale = ContentScale.Crop
                             )
+                        } else if (isVideo) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color.Black),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PlayCircle,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        } else if (isAudio) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         } else {
                             Icon(
                                 imageVector = Icons.Default.AttachFile,
@@ -487,7 +542,15 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                         cancelReminder(context, noteId)
                         when (reminderType) {
                             "single" -> if (reminderDate.isNotEmpty() && reminderTime.isNotEmpty()) {
-                                scheduleReminder(context, noteId, noteText, reminderDate, reminderTime)
+                                scheduleReminder(
+                                    context,
+                                    noteId.toInt(),
+                                    noteText,
+                                    reminderDate,
+                                    reminderTime,
+                                    deadline = if (selectedDate.isNotEmpty()) "${selectedDate} ${selectedTime}".trim() else "",
+                                    description = description
+                                )
                             }
                             "range" -> if (reminderDateFrom.isNotEmpty() && reminderDateTo.isNotEmpty() && reminderTime.isNotEmpty()) {
                                 scheduleRangeReminders(context, noteId, noteText, reminderDateFrom, reminderDateTo, reminderTime)

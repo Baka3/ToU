@@ -38,6 +38,7 @@
     <string name="btn_save">Зберегти</string>
     <string name="btn_cancel">Скасувати</string>
     <string name="btn_ok">Ок</string>
+    <string name="btn_close">Закрити</string>
     <string name="btn_add_subtask">Додати підтаску</string>
     <string name="btn_add_note">Додати нотатку</string>
     <string name="btn_choose_emoji">Обрати емодзі</string>
@@ -84,7 +85,28 @@
     <string name="cd_back">Назад</string>
     <string name="cd_add">Додати</string>
 
+    <!-- Recording Dialog -->
+    <string name="rec_stop">Зупинити</string>
+    <string name="rec_start">Почати</string>
+    <string name="rec_status_stopping">Натисніть щоб зупинити</string>
+    <string name="rec_status_starting">Натисніть щоб почати запис</string>
+    <string name="rec_title_recording">Запис…</string>
+    <string name="rec_title_voice">Голосове повідомлення</string>
+
+    <!-- Brush / Drawing Tools -->
+    <string name="desc_eraser">Ластик</string>
+    <string name="desc_brush">Пензлик</string>
+    <string name="desc_brush_type">Тип пензлика</string>
+    <string name="brush_normal">Звичайний</string>
+    <string name="brush_pencil">Олівець</string>
+    <string name="brush_marker">Маркер</string>
+    <string name="desc_size">Розмір</string>
+    <string name="brush_thickness">Товщина:</string>
+    <string name="brush_opacity">Прозорість:</string>
+    <string name="brush_select_color">Оберіть колір</string>
+
     <!-- нові -->
     <string name="take_photo">Зробити фото</string>
     <string name="no_name">Без назви</string>
+    <string name="doodle">Дудл</string>
 </resources>

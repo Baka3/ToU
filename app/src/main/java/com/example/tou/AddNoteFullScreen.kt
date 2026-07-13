@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,7 +25,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PermMedia
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -33,6 +39,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -60,6 +67,7 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
+import androidx.compose.material3.AlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,6 +118,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
     var showViewer by remember { mutableStateOf(false) }
     var selectedViewerIndex by remember { mutableStateOf(0) }
     var cameraImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var showDoodle by remember { mutableStateOf(false) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
@@ -155,6 +164,78 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             onDelete = { index ->
                 attachments = attachments.toMutableList().also { it.removeAt(index) }
                 if (attachments.isEmpty()) showViewer = false
+            }
+        )
+    }
+
+    var isRecording by remember { mutableStateOf(false) }
+    var showRecordingDialog by remember { mutableStateOf(false) }
+    val voiceRecorder = remember { VoiceRecorderHelper(context) }
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) showRecordingDialog = true
+    }
+
+    if (showDoodle) {
+        DoodleScreen(
+            onSave = { path ->
+                attachments = (attachments + path).take(10)
+                showDoodle = false
+            },
+            onDismiss = { showDoodle = false }
+        )
+    }
+
+    if (showRecordingDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if (isRecording) {
+                    val path = voiceRecorder.stopRecording()
+                    attachments = (attachments + path).take(10)
+                    isRecording = false
+                }
+                showRecordingDialog = false
+            },
+            title = { Text(if (isRecording) stringResource(R.string.rec_title_recording) else stringResource(R.string.rec_title_voice)) },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = if (isRecording) Icons.Default.RadioButtonChecked
+                        else Icons.Default.Mic,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(if (isRecording) stringResource(R.string.rec_status_stopping) else stringResource(R.string.rec_status_starting))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (isRecording) {
+                        val path = voiceRecorder.stopRecording()
+                        attachments = (attachments + path).take(10)
+                        isRecording = false
+                        showRecordingDialog = false
+                    } else {
+                        voiceRecorder.startRecording()
+                        isRecording = true
+                    }
+                }) {
+                    Text(if (isRecording) stringResource(R.string.rec_stop) else stringResource(R.string.rec_start))
+                }
+            },
+            dismissButton = {
+                if (!isRecording) {
+                    TextButton(onClick = { showRecordingDialog = false }) {
+                        Text(stringResource(R.string.btn_cancel))
+                    }
+                }
             }
         )
     }
@@ -305,7 +386,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                             ExposedDropdownMenu(
                                 expanded = showTopicDropdown && filteredTopics.isNotEmpty(),
                                 onDismissRequest = { showTopicDropdown = false },
-                                modifier = Modifier.heightIn(max = 200.dp) // ← обмежуємо висоту, всередині буде скрол
+                                modifier = Modifier.heightIn(max = 200.dp)
                             ) {
                                 filteredTopics.forEach { topic ->
                                     DropdownMenuItem(
@@ -384,20 +465,37 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                     onDismissRequest = { showAttachMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.take_photo)) },
-                        leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
+                        text = { Text(stringResource(R.string.doodle)) },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Draw, contentDescription = null) },
                         onClick = {
                             showAttachMenu = false
-                            val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+                            showDoodle = true
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.take_photo)) },
+                        leadingIcon = { Icon(imageVector = Icons.Default.PermMedia, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            imagePicker.launch("image/* video/*")
+                            /*val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
                             val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", photoFile)
                             cameraImageUri = uri
-                            cameraLauncher.launch(uri)
+                            cameraLauncher.launch(uri)*/
                         }
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.btn_add_image)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
                         onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.rec_title_voice)) },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Mic, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            audioPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                        }
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.btn_add_file)) },
@@ -413,6 +511,8 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 attachments.forEachIndexed { index, path ->
                     val isImage = isImagePath(path)
+                    val isVideo = isVideoPath(path)
+                    val isAudio = isAudioPath(path)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -430,6 +530,35 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                                 modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
                                 contentScale = ContentScale.Crop
                             )
+                        } else if (isVideo) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color.Black),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PlayCircle,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        } else if (isAudio) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         } else {
                             Icon(
                                 imageVector = Icons.Default.AttachFile,
@@ -534,7 +663,15 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                             )
                             when (reminderType) {
                                 "single" -> if (reminderDate.isNotEmpty() && reminderTime.isNotEmpty()) {
-                                    scheduleReminder(context, noteId.toInt(), noteText, reminderDate, reminderTime)
+                                    scheduleReminder(
+                                        context,
+                                        noteId.toInt(),
+                                        noteText,
+                                        reminderDate,
+                                        reminderTime,
+                                        deadline = if (selectedDate.isNotEmpty()) "${selectedDate} ${selectedTime}".trim() else "",
+                                        description = description
+                                    )
                                 }
                                 "range" -> if (reminderDateFrom.isNotEmpty() && reminderDateTo.isNotEmpty() && reminderTime.isNotEmpty()) {
                                     scheduleRangeReminders(context, noteId.toInt(), noteText, reminderDateFrom, reminderDateTo, reminderTime)

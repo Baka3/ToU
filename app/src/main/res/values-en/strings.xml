@@ -33,6 +33,7 @@
     <string name="btn_save">Save</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_ok">Ok</string>
+    <string name="btn_close">Close</string>
     <string name="btn_add_subtask">Add subtask</string>
     <string name="btn_add_note">Add note</string>
     <string name="btn_choose_emoji">Choose emoji</string>
@@ -74,6 +75,28 @@
     <string name="cd_back">Back</string>
     <string name="cd_add">Add</string>
 
+    <!-- Recording Dialog -->
+    <string name="rec_stop">Stop</string>
+    <string name="rec_start">Start</string>
+    <string name="rec_status_stopping">Tap to stop</string>
+    <string name="rec_status_starting">Tap to start recording</string>
+    <string name="rec_title_recording">Recording…</string>
+    <string name="rec_title_voice">Voice message</string>
+
+    <!-- Brush / Drawing Tools -->
+    <string name="desc_eraser">Eraser</string>
+    <string name="desc_brush">Brush</string>
+    <string name="desc_brush_type">Brush type</string>
+    <string name="brush_normal">Normal</string>
+    <string name="brush_pencil">Pencil</string>
+    <string name="brush_marker">Marker</string>
+    <string name="desc_size">Size</string>
+    <string name="brush_thickness">Thickness:</string>
+    <string name="brush_opacity">Opacity:</string>
+    <string name="brush_select_color">Select color</string>
+
+
     <string name="take_photo">Take photo</string>
     <string name="no_name">Untitled</string>
+    <string name="doodle">Doodle</string>
 </resources>
