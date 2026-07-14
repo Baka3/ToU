@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.ui.res.stringResource
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -111,25 +112,25 @@ fun TopicsScreen(navController: NavController) {
                     selectionMode = false
                     selectedTopics = emptySet()
                 }) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Вийти")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_back))
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                ScreenHeader(title = "Топіки", navController = navController)
+                ScreenHeader(title = stringResource(R.string.topics), navController = navController)
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 Box {
                     IconButton(onClick = { showMenu = true }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Більше")
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.desc_more))
                     }
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Перейменувати") },
+                            text = { Text(stringResource(R.string.dialog_rename)) },
                             leadingIcon = {
                                 Icon(imageVector = Icons.Default.Edit, contentDescription = null)
                             },
@@ -156,7 +157,7 @@ fun TopicsScreen(navController: NavController) {
                 }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Видалити",
+                        contentDescription = stringResource(R.string.cd_delete),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -168,7 +169,7 @@ fun TopicsScreen(navController: NavController) {
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Топіків ще немає", color = Color.Gray)
+                Text(stringResource(R.string.empty_topics), color = Color.Gray)
             }
         } else {
             LazyColumn(
@@ -215,7 +216,7 @@ fun TopicsScreen(navController: NavController) {
                             if (isCustom && selectionMode) {
                                 Icon(
                                     imageVector = Icons.Default.DragHandle,
-                                    contentDescription = "Перетягнути",
+                                    contentDescription = stringResource(R.string.desc_drag),
                                     modifier = Modifier
                                         .draggableHandle()
                                         .padding(end = 8.dp),
@@ -239,14 +240,14 @@ fun TopicsScreen(navController: NavController) {
                                     newName = topic
                                     showRenameDialog = true
                                 }) {
-                                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Редагувати назву")
+                                    Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.cd_edit))
                                 }
                                 IconButton(onClick = {
                                     scope.launch { App.db.topicDao().deleteByName(topic) }
                                 }) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = "Видалити",
+                                        contentDescription = stringResource(R.string.cd_delete),
                                         tint = MaterialTheme.colorScheme.error
                                     )
                                 }
@@ -269,7 +270,7 @@ fun TopicsScreen(navController: NavController) {
                     contentDescription = null,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Додати топік")
+                Text(stringResource(R.string.btn_add_new_topic))
             }
         }
     }
@@ -277,12 +278,12 @@ fun TopicsScreen(navController: NavController) {
     if (showAddDialog) {
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("Новий топік") },
+            title = { Text(stringResource(R.string.dialog_new_topic)) },
             text = {
                 TextField(
                     value = newTopicName,
                     onValueChange = { newTopicName = it },
-                    placeholder = { Text("Назва топіку") },
+                    placeholder = { Text(stringResource(R.string.dialog_topic_name)) },
                     singleLine = true
                 )
             },
@@ -299,12 +300,12 @@ fun TopicsScreen(navController: NavController) {
                         }
                     }
                 }) {
-                    Text("Додати")
+                    Text(stringResource(R.string.cd_add))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Скасувати")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         )
@@ -313,7 +314,7 @@ fun TopicsScreen(navController: NavController) {
     if (showRenameDialog) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
-            title = { Text("Змінити назву") },
+            title = { Text(stringResource(R.string.dialog_rename)) },
             text = {
                 TextField(
                     value = newName,
@@ -333,12 +334,12 @@ fun TopicsScreen(navController: NavController) {
                         showRenameDialog = false
                     }
                 }) {
-                    Text("Зберегти")
+                    Text(stringResource(R.string.btn_save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRenameDialog = false }) {
-                    Text("Скасувати")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         )

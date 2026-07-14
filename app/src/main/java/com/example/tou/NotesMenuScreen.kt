@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import com.example.tou.R
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -47,7 +48,7 @@ fun NotesMenuScreen(navController: NavController) {
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)
         ) {
-            Text("Список всіх справ")
+            Text(stringResource(R.string.all_tasks))
         }
 
         Button(
@@ -56,7 +57,7 @@ fun NotesMenuScreen(navController: NavController) {
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)
         ) {
-            Text("Терміни")
+            Text(stringResource(R.string.deadlines))
         }
 
         Button(
@@ -65,7 +66,7 @@ fun NotesMenuScreen(navController: NavController) {
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)
         ) {
-            Text("Нагадування")
+            Text(stringResource(R.string.reminders))
         }
 
         Button(
@@ -74,7 +75,7 @@ fun NotesMenuScreen(navController: NavController) {
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)
         ) {
-            Text("Топіки")
+            Text(stringResource(R.string.topics))
         }
 
         Button(
@@ -83,7 +84,7 @@ fun NotesMenuScreen(navController: NavController) {
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)
         ) {
-            Text("Спільні нотаточки")
+            Text(stringResource(R.string.shared_notes))
         }
 
         Button(
@@ -92,7 +93,7 @@ fun NotesMenuScreen(navController: NavController) {
                 .fillMaxWidth(0.6f)
                 .padding(vertical = 8.dp)
         ) {
-            Text("Виконані справи")
+            Text(stringResource(R.string.completed))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -129,7 +130,7 @@ fun NotesMenuScreen(navController: NavController) {
                     contentDescription = null,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Додати нотаточку")
+                Text(stringResource(R.string.add_note))
             }
         }
     }

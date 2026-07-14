@@ -66,6 +66,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun NotesScreen(navController: NavController) {
@@ -119,7 +120,7 @@ fun NotesScreen(navController: NavController) {
                     selectionMode = false
                     selectedIds = emptySet()
                 }) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Вийти")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_back))
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -134,14 +135,14 @@ fun NotesScreen(navController: NavController) {
                 // Три крапки
                 Box {
                     IconButton(onClick = { showMenu = true }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Більше")
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.desc_more))
                     }
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Виконати") },
+                            text = { Text(stringResource(R.string.btn_mark_done)) },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
@@ -169,7 +170,7 @@ fun NotesScreen(navController: NavController) {
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Створити топік") },
+                            text = { Text(stringResource(R.string.btn_create_topic)) },
                             leadingIcon = {
                                 Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
                             },
@@ -179,7 +180,7 @@ fun NotesScreen(navController: NavController) {
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Додати до топіка") },
+                            text = { Text(stringResource(R.string.btn_add_to_topic)) },
                             leadingIcon = {
                                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
                             },
@@ -204,7 +205,7 @@ fun NotesScreen(navController: NavController) {
                 }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Видалити",
+                        contentDescription = stringResource(R.string.cd_delete),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -214,13 +215,13 @@ fun NotesScreen(navController: NavController) {
             if (showTopicDialog) {
                 AlertDialog(
                     onDismissRequest = { showTopicDialog = false },
-                    title = { Text("Додати до топіка") },
+                    title = { Text(stringResource(R.string.btn_add_to_topic)) },
                     text = {
                         Column {
                             TextField(
                                 value = topicSearch,
                                 onValueChange = { topicSearch = it },
-                                placeholder = { Text("Пошук топіку") },
+                                placeholder = { Text(stringResource(R.string.placeholder_topic_search)) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -261,7 +262,7 @@ fun NotesScreen(navController: NavController) {
                                             contentDescription = null,
                                             modifier = Modifier.padding(end = 4.dp)
                                         )
-                                        Text("Створити новий топік і зберегти туди")
+                                        Text(stringResource(R.string.btn_new_topic_save))
                                     }
                                 }
                             }
@@ -269,7 +270,7 @@ fun NotesScreen(navController: NavController) {
                     },
                     confirmButton = {
                         TextButton(onClick = { showTopicDialog = false; topicSearch = "" }) {
-                            Text("Скасувати")
+                            Text(stringResource(R.string.btn_cancel))
                         }
                     },
                     dismissButton = {}
@@ -280,12 +281,12 @@ fun NotesScreen(navController: NavController) {
             if (showNewTopicDialog) {
                 AlertDialog(
                     onDismissRequest = { showNewTopicDialog = false },
-                    title = { Text("Назва топіку") },
+                    title = { Text(stringResource(R.string.dialog_topic_name)) },
                     text = {
                         TextField(
                             value = newTopicForSelected,
                             onValueChange = { newTopicForSelected = it },
-                            placeholder = { Text("Введіть назву") },
+                            placeholder = { Text(stringResource(R.string.placeholder_topic_name)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -310,12 +311,12 @@ fun NotesScreen(navController: NavController) {
                                 }
                             }
                         }) {
-                            Text("Зберегти")
+                            Text(stringResource(R.string.btn_save))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showNewTopicDialog = false }) {
-                            Text("Скасувати")
+                            Text(stringResource(R.string.btn_cancel))
                         }
                     }
                 )
@@ -368,7 +369,7 @@ fun NotesScreen(navController: NavController) {
                             {
                                 Icon(
                                     imageVector = Icons.Default.DragHandle,
-                                    contentDescription = "Перетягнути",
+                                    contentDescription = stringResource(R.string.desc_drag),
                                     modifier = Modifier
                                         .draggableHandle()
                                         .padding(end = 4.dp)
@@ -385,7 +386,7 @@ fun NotesScreen(navController: NavController) {
                 onClick = { navController.navigate("add_note_full") },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Додати нотатку")
+                Text(stringResource(R.string.btn_add_note))
             }
         }
     }
@@ -440,7 +441,7 @@ fun SubtaskItem(
         IconButton(onClick = { onEdit() }) {
             Icon(
                 imageVector = Icons.Default.Edit,
-                contentDescription = "Редагувати",
+                contentDescription = stringResource(R.string.cd_edit),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -449,7 +450,7 @@ fun SubtaskItem(
         }) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Видалити",
+                contentDescription = stringResource(R.string.cd_delete),
                 modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.error
             )
@@ -547,12 +548,12 @@ fun NoteItem(
                     }
                 }
                 IconButton(onClick = { onEdit() }) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Редагувати")
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.cd_edit))
                 }
                 IconButton(onClick = { onDelete() }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Видалити",
+                        contentDescription = stringResource(R.string.cd_delete),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -584,7 +585,7 @@ fun NoteItem(
                             contentDescription = null,
                             modifier = Modifier.padding(end = 4.dp)
                         )
-                        Text("Додати підтаску")
+                        Text(stringResource(R.string.btn_add_subtask))
                     }
                 }
             }

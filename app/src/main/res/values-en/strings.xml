@@ -27,13 +27,13 @@
     <string name="placeholder_date">Choose date</string>
     <string name="placeholder_time">Choose time</string>
     <string name="placeholder_topic_search">Search topic</string>
-    <string name="placeholder_topic_name">Enter name</string>
+    <string name="placeholder_topic_name">Enter topic name</string>
     <string name="placeholder_enter_description">Enter description</string>
 
+    <string name="btn_close">Close</string>
     <string name="btn_save">Save</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_ok">Ok</string>
-    <string name="btn_close">Close</string>
     <string name="btn_add_subtask">Add subtask</string>
     <string name="btn_add_note">Add note</string>
     <string name="btn_choose_emoji">Choose emoji</string>
@@ -44,6 +44,7 @@
     <string name="btn_add_to_topic">Add to topic</string>
     <string name="btn_mark_done">Mark as done</string>
     <string name="btn_new_topic_save">Create new topic and save there</string>
+    <string name="btn_add_new_topic">Add new topic</string>
 
     <string name="dialog_add_to_topic">Add to topic</string>
     <string name="dialog_topic_name">Topic name</string>
@@ -70,7 +71,7 @@
 
     <string name="cd_delete">Delete</string>
     <string name="cd_edit">Edit</string>
-    <string name="cd_attach">Attach</string>
+    <string name="cd_attach">Attach (%1$d)</string>
     <string name="cd_overdue_subtasks">Has overdue subtasks</string>
     <string name="cd_back">Back</string>
     <string name="cd_add">Add</string>
@@ -91,12 +92,18 @@
     <string name="brush_pencil">Pencil</string>
     <string name="brush_marker">Marker</string>
     <string name="desc_size">Size</string>
-    <string name="brush_thickness">Thickness:</string>
-    <string name="brush_opacity">Opacity:</string>
+    <string name="brush_thickness">Thickness: %1$d</string>
+    <string name="brush_opacity">Opacity: %1$d%%</string>
     <string name="brush_select_color">Select color</string>
 
 
     <string name="take_photo">Take photo</string>
     <string name="no_name">Untitled</string>
     <string name="doodle">Doodle</string>
+    <string name="action_draw">Draw</string>
+    <string name="action_crop">Crop</string>
+    <string name="action_rotate">Rotate</string>
+    <string name="desc_drag">Drag</string>
+    <string name="desc_more">More</string>
+
 </resources>

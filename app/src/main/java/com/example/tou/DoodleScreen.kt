@@ -33,6 +33,7 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.graphics.graphicsLayer
+import android.graphics.Picture
 
 data class DoodlePath(
     val points: List<Offset>,
@@ -50,6 +51,7 @@ fun DoodleScreen(
     onSave: (String) -> Unit, // повертає шлях до файлу
     onDismiss: () -> Unit
 ) {
+    val picture = remember { Picture() }
     val paths = remember { mutableStateListOf<DoodlePath>() }
     val currentPoints = remember { mutableStateListOf<Offset>() }
     val context = LocalContext.current
@@ -104,15 +106,15 @@ fun DoodleScreen(
                     val height = canvasSize.height.toInt().takeIf { it > 0 } ?: 1920
 
                     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                    val androidCanvas = AndroidCanvas(bitmap)
+                    val androidCanvas = android.graphics.Canvas(bitmap)
                     androidCanvas.drawColor(android.graphics.Color.WHITE)
+                    paths.forEach { path -> drawDoodlePathOnCanvas(androidCanvas, path) }
 
                     // зберігаємо у файл
                     val file = File(context.cacheDir, "doodle_${System.currentTimeMillis()}.png")
-                    FileOutputStream(file).use { out ->
+                    java.io.FileOutputStream(file).use { out ->
                         bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
                     }
-
                     onSave(file.absolutePath)
                 }) {
                     Text(stringResource(R.string.btn_save))
@@ -120,55 +122,45 @@ fun DoodleScreen(
             }
 
             // Холст
-            Canvas(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .onSizeChanged { size ->
-                        canvasSize = androidx.compose.ui.geometry.Size(
-                            size.width.toFloat(),
-                            size.height.toFloat()
-                        )
-                    }
-                    .graphicsLayer(
-                        scaleX = scale,
-                        scaleY = scale,
-                        translationX = offset.x,
-                        translationY = offset.y
+            val canvasModifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(Color.White)
+                .onSizeChanged { size ->
+                    canvasSize = androidx.compose.ui.geometry.Size(
+                        size.width.toFloat(),
+                        size.height.toFloat()
                     )
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = { offset ->
-                                currentPoints.clear()
-                                currentPoints.add(offset)
-                            },
-                            onDrag = { change, _ ->
-                                currentPoints.add(change.position)
-                            },
-                            onDragEnd = {
-                                if (currentPoints.isNotEmpty()) {
-                                    paths.add(
-                                        DoodlePath(
-                                            points = currentPoints.toList(),
-                                            color = if (isEraser) Color.White else color,
-                                            strokeWidth = if (isEraser) strokeWidth * 3 else strokeWidth,
-                                            alpha = if (isEraser) 1f else alpha,
-                                            brushType = brushType,
-                                            isEraser = isEraser
-                                        )
-                                    )
-                                    currentPoints.clear()
-                                }
-                            }
-                        )
-                    }
-            ) {
-                // малюємо всі збережені шляхи
-                paths.forEach { path ->
-                    drawDoodlePath(path)
                 }
-                // малюємо поточний шлях
+                .pointerInput(isEraser, brushType, color, strokeWidth, alpha) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            currentPoints.clear()
+                            currentPoints.add(offset)
+                        },
+                        onDrag = { change, _ ->
+                            currentPoints.add(change.position)
+                        },
+                        onDragEnd = {
+                            if (currentPoints.isNotEmpty()) {
+                                paths.add(
+                                    DoodlePath(
+                                        points = currentPoints.toList(),
+                                        color = if (isEraser) Color.White else color,
+                                        strokeWidth = if (isEraser) strokeWidth * 3 else strokeWidth,
+                                        alpha = if (isEraser) 1f else alpha,
+                                        brushType = brushType,
+                                        isEraser = isEraser
+                                    )
+                                )
+                                currentPoints.clear()
+                            }
+                        }
+                    )
+                }
+
+            Canvas(modifier = canvasModifier) {
+                paths.forEach { path -> drawDoodlePath(path) }
                 if (currentPoints.size > 1) {
                     drawDoodlePath(
                         DoodlePath(
@@ -322,38 +314,66 @@ fun DoodleScreen(
 
 fun DrawScope.drawDoodlePath(path: DoodlePath) {
     if (path.points.size < 2) return
-
-    val paint = when (path.brushType) {
-        BrushType.PENCIL -> Paint().apply {
-            this.color = path.color.copy(alpha = path.alpha * 0.7f)
-            strokeWidth = path.strokeWidth * 0.7f
-            strokeCap = StrokeCap.Round
-        }
-        BrushType.MARKER -> Paint().apply {
-            this.color = path.color.copy(alpha = path.alpha * 0.5f)
-            strokeWidth = path.strokeWidth * 2f
-            strokeCap = StrokeCap.Square
-        }
-        else -> Paint().apply {
-            this.color = path.color.copy(alpha = path.alpha)
-            strokeWidth = path.strokeWidth
-            strokeCap = StrokeCap.Round
-        }
+    val paintColor = when (path.brushType) {
+        BrushType.PENCIL -> path.color.copy(alpha = path.alpha * 0.7f)
+        BrushType.MARKER -> path.color.copy(alpha = path.alpha * 0.5f)
+        else -> path.color.copy(alpha = path.alpha)
     }
+    val paintWidth = when (path.brushType) {
+        BrushType.PENCIL -> path.strokeWidth * 0.7f
+        BrushType.MARKER -> path.strokeWidth * 2f
+        else -> path.strokeWidth
+    }
+    val cap = if (path.brushType == BrushType.MARKER) StrokeCap.Square else StrokeCap.Round
 
     val androidPath = androidx.compose.ui.graphics.Path()
     androidPath.moveTo(path.points.first().x, path.points.first().y)
-    path.points.drop(1).forEach { point ->
-        androidPath.lineTo(point.x, point.y)
-    }
+    path.points.drop(1).forEach { androidPath.lineTo(it.x, it.y) }
 
     drawPath(
         path = androidPath,
-        color = paint.color,
-        style = Stroke(
-            width = paint.strokeWidth,
-            cap = paint.strokeCap,
-            join = StrokeJoin.Round
-        )
+        color = paintColor,
+        style = Stroke(width = paintWidth, cap = cap, join = StrokeJoin.Round)
     )
+}
+
+fun drawDoodlePathOnCanvas(canvas: android.graphics.Canvas, path: DoodlePath) {
+    if (path.points.size < 2) return
+    val paint = android.graphics.Paint().apply {
+        isAntiAlias = true
+        style = android.graphics.Paint.Style.STROKE
+        strokeJoin = android.graphics.Paint.Join.ROUND
+        color = when (path.brushType) {
+            BrushType.PENCIL -> android.graphics.Color.argb(
+                (path.alpha * 0.7f * 255).toInt(),
+                (path.color.red * 255).toInt(),
+                (path.color.green * 255).toInt(),
+                (path.color.blue * 255).toInt()
+            )
+            BrushType.MARKER -> android.graphics.Color.argb(
+                (path.alpha * 0.5f * 255).toInt(),
+                (path.color.red * 255).toInt(),
+                (path.color.green * 255).toInt(),
+                (path.color.blue * 255).toInt()
+            )
+            else -> android.graphics.Color.argb(
+                (path.alpha * 255).toInt(),
+                (path.color.red * 255).toInt(),
+                (path.color.green * 255).toInt(),
+                (path.color.blue * 255).toInt()
+            )
+        }
+        strokeWidth = when (path.brushType) {
+            BrushType.PENCIL -> path.strokeWidth * 0.7f
+            BrushType.MARKER -> path.strokeWidth * 2f
+            else -> path.strokeWidth
+        }
+        strokeCap = if (path.brushType == BrushType.MARKER)
+            android.graphics.Paint.Cap.SQUARE
+        else android.graphics.Paint.Cap.ROUND
+    }
+    val nativePath = android.graphics.Path()
+    nativePath.moveTo(path.points.first().x, path.points.first().y)
+    path.points.drop(1).forEach { nativePath.lineTo(it.x, it.y) }
+    canvas.drawPath(nativePath, paint)
 }

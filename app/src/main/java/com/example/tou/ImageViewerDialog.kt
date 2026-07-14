@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -107,7 +108,7 @@ fun ImageViewerDialog(
                 IconButton(onClick = { onDismiss() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Назад",
+                        contentDescription = stringResource(R.string.cd_back),
                         tint = Color.White
                     )
                 }
@@ -121,7 +122,7 @@ fun ImageViewerDialog(
                     IconButton(onClick = { onDelete(pagerState.currentPage) }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Видалити",
+                            contentDescription = stringResource(R.string.cd_delete),
                             tint = Color.White
                         )
                     }
@@ -139,13 +140,13 @@ fun ImageViewerDialog(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 IconButton(onClick = { }) {
-                    Icon(imageVector = Icons.Default.Brush, contentDescription = "Малювати", tint = Color.White)
+                    Icon(imageVector = Icons.Default.Brush, contentDescription = stringResource(R.string.action_draw), tint = Color.White)
                 }
                 IconButton(onClick = { }) {
-                    Icon(imageVector = Icons.Default.Crop, contentDescription = "Обрізати", tint = Color.White)
+                    Icon(imageVector = Icons.Default.Crop, contentDescription = stringResource(R.string.action_crop), tint = Color.White)
                 }
                 IconButton(onClick = { }) {
-                    Icon(imageVector = Icons.Default.RotateRight, contentDescription = "Повернути", tint = Color.White)
+                    Icon(imageVector = Icons.Default.RotateRight, contentDescription = stringResource(R.string.action_rotate), tint = Color.White)
                 }
             }
         }

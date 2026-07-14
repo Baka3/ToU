@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -34,7 +35,7 @@ fun LanguageSettingsScreen(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ScreenHeader(title = "Мова", navController = navController)
+        ScreenHeader(title = stringResource(R.string.settings_language), navController = navController)
 
         languages.forEach { (code, name) ->
             Row(
@@ -68,7 +69,7 @@ fun LanguageSettingsScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Повна локалізація буде додана в наступному оновленні",
+            text = stringResource(R.string.settings_notifications_soon),
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )

@@ -302,7 +302,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
             // скріпка справа за полем
             Box {
                 IconButton(onClick = { showAttachMenu = true }) {
-                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = "Прикріпити")
+                    Icon(imageVector = Icons.Default.AttachFile, contentDescription = stringResource(R.string.cd_attach))
                 }
                 DropdownMenu(
                     expanded = showAttachMenu,

@@ -474,14 +474,21 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.take_photo)) },
-                        leadingIcon = { Icon(imageVector = Icons.Default.PermMedia, contentDescription = null) },
+                        leadingIcon = { Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null) },
                         onClick = {
                             showAttachMenu = false
-                            imagePicker.launch("image/* video/*")
-                            /*val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
-                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", photoFile)
+                            val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.provider",
+                                photoFile
+                            )
                             cameraImageUri = uri
-                            cameraLauncher.launch(uri)*/
+                            val intent = android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                                putExtra(android.provider.MediaStore.EXTRA_OUTPUT, uri)
+                            }
+                            //cameraLauncher.launch(intent)
+                            cameraLauncher.launch(uri)
                         }
                     )
                     DropdownMenuItem(
@@ -513,68 +520,61 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                     val isImage = isImagePath(path)
                     val isVideo = isVideoPath(path)
                     val isAudio = isAudioPath(path)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                selectedViewerIndex = index
-                                showViewer = true
+
+                    if (isAudio) {
+                        AudioPlayerRow(
+                            path = path,
+                            onDelete = {
+                                attachments = attachments.toMutableList().also { it.removeAt(index) }
                             }
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (isImage) {
-                            AsyncImage(
-                                model = path,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else if (isVideo) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color.Black),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.PlayCircle,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
-                        } else if (isAudio) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Mic,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.AttachFile,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp).padding(8.dp)
-                            )
-                        }
-                        Text(
-                            text = path.substringAfterLast("/"),
-                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                            maxLines = 1
                         )
-                        IconButton(onClick = {
-                            attachments = attachments.toMutableList().also { it.removeAt(index) }
-                        }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedViewerIndex = index; showViewer = true }
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (isImage) {
+                                AsyncImage(
+                                    model = path,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else if (isVideo) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(Color.Black),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PlayCircle,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.AttachFile,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp).padding(8.dp)
+                                )
+                            }
+                            Text(
+                                text = path.substringAfterLast("/"),
+                                modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                                maxLines = 1
+                            )
+                            IconButton(onClick = {
+                                attachments = attachments.toMutableList().also { it.removeAt(index) }
+                            }) {
+                                Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_delete))
+                            }
                         }
                     }
                 }

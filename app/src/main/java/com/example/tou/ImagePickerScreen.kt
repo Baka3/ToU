@@ -22,6 +22,7 @@ import coil.compose.AsyncImage
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.ui.res.stringResource
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -93,7 +94,7 @@ fun ImageViewerScreen(
             IconButton(onClick = { }) {
                 Icon(
                     imageVector = Icons.Default.Brush,
-                    contentDescription = "Малювати",
+                    contentDescription = stringResource(R.string.action_draw),
                     tint = Color.White
                 )
             }
@@ -102,7 +103,7 @@ fun ImageViewerScreen(
             IconButton(onClick = { }) {
                 Icon(
                     imageVector = Icons.Default.Crop,
-                    contentDescription = "Обрізати",
+                    contentDescription = stringResource(R.string.action_crop),
                     tint = Color.White
                 )
             }
@@ -110,7 +111,7 @@ fun ImageViewerScreen(
             IconButton(onClick = { }) {
                 Icon(
                     imageVector = Icons.Default.RotateRight,
-                    contentDescription = "Повернути",
+                    contentDescription = stringResource(R.string.action_rotate),
                     tint = Color.White
                 )
             }
@@ -129,7 +130,11 @@ fun ImageViewerScreen(
                     contentDescription = null,
                     modifier = Modifier.padding(end = 4.dp)
                 )
-                Text("Прикріпити (${selectedImages.size})", color = Color.White)
+                Text(
+                    text = stringResource(R.string.cd_attach, selectedImages.size),
+                    color = Color.White
+                )
+                //Text(stringResource(R.string.cd_attach) (${selectedImages.size})", color = Color.White)
             }
         }
 
@@ -142,7 +147,7 @@ fun ImageViewerScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Закрити",
+                contentDescription = stringResource(R.string.btn_close),
                 tint = Color.White
             )
         }
