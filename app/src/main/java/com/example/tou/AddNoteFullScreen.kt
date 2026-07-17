@@ -3,6 +3,7 @@ package com.example.tou
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -176,6 +177,20 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) showRecordingDialog = true
+    }
+
+    val mediaPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia()
+    ) { uris ->
+        uris.forEach { uri ->
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) { }
+        }
+        attachments = (attachments + uris.map { it.toString() }).take(10)
     }
 
     if (showDoodle) {
@@ -478,23 +493,23 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         onClick = {
                             showAttachMenu = false
                             val photoFile = File(context.cacheDir, "photo_${System.currentTimeMillis()}.jpg")
-                            val uri = FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.provider",
-                                photoFile
-                            )
+                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", photoFile)
                             cameraImageUri = uri
                             val intent = android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE).apply {
                                 putExtra(android.provider.MediaStore.EXTRA_OUTPUT, uri)
                             }
-                            //cameraLauncher.launch(intent)
                             cameraLauncher.launch(uri)
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.btn_add_image)) },
-                        leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
-                        onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
+                        text = { Text(stringResource(R.string.attach_media)) },
+                        leadingIcon = { Icon(imageVector = Icons.Default.PermMedia, contentDescription = null) },
+                        onClick = {
+                            showAttachMenu = false
+                            mediaPicker.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                            )
+                        }
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.rec_title_voice)) },
@@ -517,9 +532,9 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
         if (attachments.isNotEmpty()) {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 attachments.forEachIndexed { index, path ->
-                    val isImage = isImagePath(path)
-                    val isVideo = isVideoPath(path)
-                    val isAudio = isAudioPath(path)
+                    val isImage = isImagePath(context, path)
+                    val isVideo = isVideoPath(context, path)
+                    val isAudio = isAudioPath(context, path)
 
                     if (isAudio) {
                         AudioPlayerRow(
@@ -532,10 +547,17 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { selectedViewerIndex = index; showViewer = true }
+                                .clickable {
+                                    if (isImage || isVideo) {
+                                        selectedViewerIndex = index
+                                        showViewer = true
+                                    } else {
+                                        openFileWithSystem(context, path)
+                                    }
+                                }
                                 .padding(vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        ){
                             if (isImage) {
                                 AsyncImage(
                                     model = path,
@@ -686,5 +708,27 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
         ) {
             Text(stringResource(R.string.btn_save))
         }
+    }
+}
+
+fun openFileWithSystem(context: android.content.Context, path: String) {
+    try {
+        val uri = if (path.startsWith("content://")) {
+            android.net.Uri.parse(path)
+        } else {
+            androidx.core.content.FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                java.io.File(path)
+            )
+        }
+        val mime = context.contentResolver.getType(uri) ?: "*/*"
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mime)
+            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }

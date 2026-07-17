@@ -106,4 +106,25 @@
     <string name="desc_drag">Drag</string>
     <string name="desc_more">More</string>
 
+    <!-- Media Options -->
+    <string name="attach_media">Photos or video</string>
+    <string name="action_open_in_app">Open in app</string>
+    <string name="desc_move">Move</string>
+
+    <!-- Settings Subtitles -->
+    <string name="subtitle_notifications">Notification settings</string>
+    <string name="subtitle_color_scheme">Color scheme</string>
+
+    <!-- Themes -->
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_purple">Purple</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_blue">Blue</string>
+    <string name="subtitle_lang_ukrainian">Ukrainian</string>
+    <string name="subtitle_change_wallpaper">Change main screen background</string>
+
+
+
 </resources>

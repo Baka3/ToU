@@ -34,6 +34,7 @@ import java.io.FileOutputStream
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.graphics.graphicsLayer
 import android.graphics.Picture
+import androidx.compose.material.icons.filled.OpenWith
 
 data class DoodlePath(
     val points: List<Offset>,
@@ -61,13 +62,17 @@ fun DoodleScreen(
     var strokeWidth by remember { mutableStateOf(8f) }
     var alpha by remember { mutableStateOf(1f) }
     var color by remember { mutableStateOf(Color.Black) }
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
 
     var showBrushMenu by remember { mutableStateOf(false) }
     var showSizeMenu by remember { mutableStateOf(false) }
     var showColorMenu by remember { mutableStateOf(false) }
     var canvasSize by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
+
+    var scale by remember { mutableStateOf(1f) }
+    var rotation by remember { mutableStateOf(0f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    var isTransformMode by remember { mutableStateOf(false) }
+
 
     val colors = listOf(
         Color.Black, Color.White, Color.Red, Color.Green,
@@ -125,41 +130,112 @@ fun DoodleScreen(
             val canvasModifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(Color(0xFFDDDDDD)) // сірий фон щоб видно краї холсту
                 .onSizeChanged { size ->
                     canvasSize = androidx.compose.ui.geometry.Size(
                         size.width.toFloat(),
                         size.height.toFloat()
                     )
                 }
-                .pointerInput(isEraser, brushType, color, strokeWidth, alpha) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            currentPoints.clear()
-                            currentPoints.add(offset)
-                        },
-                        onDrag = { change, _ ->
-                            currentPoints.add(change.position)
-                        },
-                        onDragEnd = {
-                            if (currentPoints.isNotEmpty()) {
-                                paths.add(
-                                    DoodlePath(
+                .pointerInput(isTransformMode) {
+                    if (isTransformMode) {
+                        detectTransformGestures { _, pan, zoom, rotationDelta ->
+                            scale = (scale * zoom).coerceIn(0.1f, 5f)
+                            rotation += rotationDelta
+                            offset += pan
+                        }
+                    }
+                }
+                .pointerInput(isTransformMode, isEraser, brushType, color, strokeWidth, alpha) {
+                    if (!isTransformMode) {
+                        detectDragGestures(
+                            onDragStart = { offset -> currentPoints.clear(); currentPoints.add(offset) },
+                            onDrag = { change, _ -> currentPoints.add(change.position) },
+                            onDragEnd = {
+                                if (currentPoints.isNotEmpty()) {
+                                    paths.add(DoodlePath(
                                         points = currentPoints.toList(),
                                         color = if (isEraser) Color.White else color,
                                         strokeWidth = if (isEraser) strokeWidth * 3 else strokeWidth,
                                         alpha = if (isEraser) 1f else alpha,
                                         brushType = brushType,
                                         isEraser = isEraser
-                                    )
-                                )
-                                currentPoints.clear()
+                                    ))
+                                    currentPoints.clear()
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
 
-            Canvas(modifier = canvasModifier) {
+// Холст з трансформацією
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .background(Color(0xFFDDDDDD))
+                    .onSizeChanged { size ->
+                        canvasSize = androidx.compose.ui.geometry.Size(
+                            size.width.toFloat(),
+                            size.height.toFloat()
+                        )
+                    }
+                    .pointerInput(isTransformMode) {
+                        if (isTransformMode) {
+                            detectTransformGestures { _, pan, zoom, rotationDelta ->
+                                scale = (scale * zoom).coerceIn(0.1f, 5f)
+                                rotation += rotationDelta
+                                offset += pan
+                            }
+                        }
+                    }
+                    .pointerInput(isTransformMode, isEraser, brushType, color, strokeWidth, alpha) {
+                        if (!isTransformMode) {
+                            detectDragGestures(
+                                onDragStart = { o -> currentPoints.clear(); currentPoints.add(o) },
+                                onDrag = { change, _ -> currentPoints.add(change.position) },
+                                onDragEnd = {
+                                    if (currentPoints.isNotEmpty()) {
+                                        paths.add(DoodlePath(
+                                            points = currentPoints.toList(),
+                                            color = if (isEraser) Color.White else color,
+                                            strokeWidth = if (isEraser) strokeWidth * 3 else strokeWidth,
+                                            alpha = if (isEraser) 1f else alpha,
+                                            brushType = brushType,
+                                            isEraser = isEraser
+                                        ))
+                                        currentPoints.clear()
+                                    }
+                                }
+                            )
+                        }
+                    }
+            ) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            rotationZ = rotation,
+                            translationX = offset.x,
+                            translationY = offset.y
+                        )
+                        .background(Color.White)
+                ) {
+                    paths.forEach { path -> drawDoodlePath(path) }
+                    if (currentPoints.size > 1) {
+                        drawDoodlePath(DoodlePath(
+                            points = currentPoints.toList(),
+                            color = if (isEraser) Color.White else color,
+                            strokeWidth = if (isEraser) strokeWidth * 3 else strokeWidth,
+                            alpha = if (isEraser) 1f else alpha,
+                            brushType = brushType
+                        ))
+                    }
+                }
+            }
+            /*Canvas(modifier = canvasModifier) {
                 paths.forEach { path -> drawDoodlePath(path) }
                 if (currentPoints.size > 1) {
                     drawDoodlePath(
@@ -173,9 +249,21 @@ fun DoodleScreen(
                         )
                     )
                 }
-            }
+            }*/
 
             // Нижня панель
+            IconButton(
+                onClick = { isTransformMode = !isTransformMode },
+                modifier = Modifier.background(
+                    if (isTransformMode) Color.LightGray else Color.Transparent,
+                    CircleShape
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.OpenWith,
+                    contentDescription = stringResource(R.string.desc_move)
+                )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

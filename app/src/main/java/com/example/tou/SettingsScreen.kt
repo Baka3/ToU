@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
@@ -19,33 +20,33 @@ fun SettingsScreen(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ScreenHeader(title = "Налаштування", navController = navController)
+        ScreenHeader(title = stringResource(R.string.nav_settings), navController = navController)
 
         SettingsItem(
             icon = Icons.Default.Language,
-            title = "Мова",
-            subtitle = "Українська",
+            title = stringResource(R.string.settings_language),
+            subtitle = stringResource(R.string.subtitle_lang_ukrainian),
             onClick = { navController.navigate("settings_language") }
         )
 
         SettingsItem(
             icon = Icons.Default.Wallpaper,
-            title = "Шпалери",
-            subtitle = "Змінити фон головного екрану",
+            title = stringResource(R.string.settings_wallpaper),
+            subtitle = stringResource(R.string.subtitle_change_wallpaper),
             onClick = { navController.navigate("settings_wallpaper") }
         )
 
         SettingsItem(
             icon = Icons.Default.Notifications,
-            title = "Нагадування",
-            subtitle = "Налаштування сповіщень",
+            title = stringResource(R.string.reminders),
+            subtitle = stringResource(R.string.subtitle_notifications),
             onClick = { navController.navigate("settings_notifications") }
         )
 
         SettingsItem(
             icon = Icons.Default.Palette,
-            title = "Теми",
-            subtitle = "Кольорова схема",
+            title = stringResource(R.string.settings_theme),
+            subtitle = stringResource(R.string.subtitle_color_scheme),
             onClick = { navController.navigate("settings_theme") }
         )
     }

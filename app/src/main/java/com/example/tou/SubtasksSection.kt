@@ -191,7 +191,7 @@ fun SubtasksSection(
             onClick = { onSubtasksChange(subtasks + SubtaskDraft()) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("+ Додати підтаску")
+            Text("Додати підтаску")
         }
     }
 }

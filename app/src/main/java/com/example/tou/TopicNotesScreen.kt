@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -59,21 +60,21 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                     selectionMode = false
                     selectedIds = emptySet()
                 }) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Вийти")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.cd_back))
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(text = "${selectedIds.size}", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.weight(1f))
                 Box {
                     IconButton(onClick = { showMenu = true }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Більше")
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(R.string.desc_more))
                     }
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Виконати") },
+                            text = { Text(stringResource(R.string.btn_mark_done)) },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
@@ -101,7 +102,7 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Створити топік") },
+                            text = { Text(stringResource(R.string.btn_create_topic)) },
                             leadingIcon = {
                                 Icon(imageVector = Icons.Default.EditNote, contentDescription = null)
                             },
@@ -111,7 +112,7 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Додати до топіка") },
+                            text = { Text(stringResource(R.string.btn_add_to_topic)) },
                             leadingIcon = {
                                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
                             },
@@ -134,7 +135,7 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                 }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Видалити",
+                        contentDescription = stringResource(R.string.cd_delete),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -185,7 +186,7 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                 onClick = { navController.navigate("add_note_full/$topic") },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Додати нотаточку")
+                Text(stringResource(R.string.add_note))
             }
         }
     }
@@ -194,13 +195,13 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
     if (showTopicDialog) {
         AlertDialog(
             onDismissRequest = { showTopicDialog = false },
-            title = { Text("Додати до топіка") },
+            title = { Text(stringResource(R.string.btn_add_to_topic)) },
             text = {
                 Column {
                     TextField(
                         value = topicSearch,
                         onValueChange = { topicSearch = it },
-                        placeholder = { Text("Пошук топіку") },
+                        placeholder = { Text(stringResource(R.string.placeholder_topic_search)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -241,7 +242,7 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                                     contentDescription = null,
                                     modifier = Modifier.padding(end = 4.dp)
                                 )
-                                Text("Створити новий топік і зберегти туди")
+                                Text(stringResource(R.string.btn_new_topic_save))
                             }
                         }
                     }
@@ -249,7 +250,7 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
             },
             confirmButton = {
                 TextButton(onClick = { showTopicDialog = false; topicSearch = "" }) {
-                    Text("Скасувати")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             },
             dismissButton = {}
@@ -260,12 +261,12 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
     if (showNewTopicDialog) {
         AlertDialog(
             onDismissRequest = { showNewTopicDialog = false },
-            title = { Text("Назва топіку") },
+            title = { Text(stringResource(R.string.dialog_topic_name)) },
             text = {
                 TextField(
                     value = newTopicForSelected,
                     onValueChange = { newTopicForSelected = it },
-                    placeholder = { Text("Введіть назву") },
+                    placeholder = { Text(stringResource(R.string.placeholder_topic_name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -290,12 +291,12 @@ fun TopicNotesScreen(navController: NavController, topic: String) {
                         }
                     }
                 }) {
-                    Text("Зберегти")
+                    Text(stringResource(R.string.btn_save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showNewTopicDialog = false }) {
-                    Text("Скасувати")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         )

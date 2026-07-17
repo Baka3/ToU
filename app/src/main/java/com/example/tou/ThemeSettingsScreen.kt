@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -27,12 +28,12 @@ fun ThemeSettingsScreen(navController: NavController) {
     val selectedTheme by AppSettings.getTheme(context).collectAsState(initial = "system")
 
     val themes = listOf(
-        Triple("system", "Системна", Color.Gray),
-        Triple("light", "Світла", Color.White),
-        Triple("dark", "Темна", Color.DarkGray),
-        Triple("purple", "Фіолетова", Color(0xFF6650A4)),
-        Triple("green", "Зелена", Color(0xFF386A1F)),
-        Triple("blue", "Синя", Color(0xFF0061A4))
+        Triple("system", stringResource(R.string.theme_system), Color.Gray),
+        Triple("light", stringResource(R.string.theme_light), Color.White),
+        Triple("dark", stringResource(R.string.theme_dark), Color.DarkGray),
+        Triple("purple", stringResource(R.string.theme_purple), Color(0xFF6650A4)),
+        Triple("green", stringResource(R.string.theme_green), Color(0xFF386A1F)),
+        Triple("blue", stringResource(R.string.theme_blue), Color(0xFF0061A4))
     )
 
     Column(
@@ -41,7 +42,7 @@ fun ThemeSettingsScreen(navController: NavController) {
             .padding(16.dp)
     ) {
         Text(
-            text = "Теми",
+            text = stringResource(R.string.settings_theme),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 16.dp)
         )

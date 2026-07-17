@@ -7,11 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 
 @Composable
 fun NotificationsSettingsScreen(navController: NavController) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Нагадування — скоро", color = Color.Gray)
+        Text(stringResource(R.string.settings_notifications_soon), color = Color.Gray)
     }
 }

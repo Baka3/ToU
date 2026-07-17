@@ -15,9 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun AudioPlayerRow(path: String, onDelete: () -> Unit) {
+    val context = LocalContext.current
     var isPlaying by remember { mutableStateOf(false) }
     var progress by remember { mutableStateOf(0f) }
     var duration by remember { mutableStateOf(0) }
@@ -26,10 +29,20 @@ fun AudioPlayerRow(path: String, onDelete: () -> Unit) {
 
     LaunchedEffect(path) {
         try {
-            mediaPlayer.setDataSource(path)
-            mediaPlayer.prepare()
-            duration = mediaPlayer.duration
-        } catch (e: Exception) { }
+            mediaPlayer.reset()
+            // для content:// URI потрібен context
+            if (path.startsWith("content://")) {
+                mediaPlayer.setDataSource(context, android.net.Uri.parse(path))
+            } else {
+                mediaPlayer.setDataSource(path)
+            }
+            mediaPlayer.setOnPreparedListener { mp ->
+                duration = mp.duration
+            }
+            mediaPlayer.prepareAsync()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     DisposableEffect(Unit) {

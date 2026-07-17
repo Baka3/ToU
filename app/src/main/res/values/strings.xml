@@ -116,5 +116,24 @@
     <string name="action_rotate">Повернути</string>
     <string name="desc_drag">Перетягнути</string>
     <string name="desc_more">Більше</string>
+    <!-- Media Options -->
+    <string name="attach_media">Фото або відео</string>
+    <string name="action_open_in_app">Відкрити у додатку</string>
+    <string name="desc_move">Переміщення</string>
+
+    <!-- Settings Subtitles -->
+    <string name="subtitle_notifications">Налаштування сповіщень</string>
+    <string name="subtitle_color_scheme">Кольорова схема</string>
+
+    <!-- Themes -->
+    <string name="theme_system">Системна</string>
+    <string name="theme_light">Світла</string>
+    <string name="theme_dark">Темна</string>
+    <string name="theme_purple">Фіолетова</string>
+    <string name="theme_green">Зелена</string>
+    <string name="theme_blue">Синя</string>
+    <string name="subtitle_lang_ukrainian">Українська</string>
+    <string name="subtitle_change_wallpaper">Змінити фон головного екрану</string>
+
 
 </resources>

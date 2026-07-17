@@ -328,11 +328,6 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.btn_add_image)) },
-                        leadingIcon = { Icon(imageVector = Icons.Default.Image, contentDescription = null) },
-                        onClick = { showAttachMenu = false; imagePicker.launch("image/*") }
-                    )
-                    DropdownMenuItem(
                         text = { Text(stringResource(R.string.btn_add_file)) },
                         leadingIcon = { Icon(imageVector = Icons.Default.AttachFile, contentDescription = null) },
                         onClick = { showAttachMenu = false; filePicker.launch("*/*") }
@@ -345,9 +340,9 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
         if (attachments.isNotEmpty()) {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 attachments.forEachIndexed { index, path ->
-                    val isImage = isImagePath(path)
-                    val isVideo = isVideoPath(path)
-                    val isAudio = isAudioPath(path)
+                    val isImage = isImagePath(context, path)
+                    val isVideo = isVideoPath(context, path)
+                    val isAudio = isAudioPath(context, path)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

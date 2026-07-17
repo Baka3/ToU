@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import java.util.Calendar
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun ReminderSection(
@@ -63,13 +64,13 @@ fun ReminderSection(
         ) {
             //ScreenHeader(title = "Нагадування", navController = navController)
             Text(
-                text = "Нагадування",
+                text = stringResource(R.string.reminders),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f)
             )
             if (reminderType.isNotEmpty()) {
                 TextButton(onClick = { onClear() }) {
-                    Text("Очистити", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.cd_delete), color = MaterialTheme.colorScheme.error)
                 }
             }
         }

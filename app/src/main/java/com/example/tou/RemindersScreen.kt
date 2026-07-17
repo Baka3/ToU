@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
@@ -46,7 +47,7 @@ fun RemindersScreen(navController: NavController) {
 
     if (grouped.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Активних нагадувань немає", color = Color.Gray)
+            Text(stringResource(R.string.empty_reminders), color = Color.Gray)
         }
     } else {
         LazyColumn(
@@ -66,7 +67,7 @@ fun RemindersScreen(navController: NavController) {
                             modifier = Modifier.weight(1f),
                             color = Color.LightGray
                         )
-                        ScreenHeader(title = "Нагадування", navController = navController)
+                        ScreenHeader(title = stringResource(R.string.reminders), navController = navController)
                         /*Text(
                             text = dateLabel,
                             modifier = Modifier.padding(horizontal = 12.dp),
