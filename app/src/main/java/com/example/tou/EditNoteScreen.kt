@@ -75,7 +75,7 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
     var reminderDateFrom by remember { mutableStateOf("") }
     var reminderDateTo by remember { mutableStateOf("") }
     var attachments by remember { mutableStateOf(listOf<String>()) }
-
+    var reminderState by remember { mutableStateOf(ReminderState()) }
     val subtasksFromDb by App.db.subtaskDao().getByNote(noteId)
         .collectAsState(initial = emptyList())
 
@@ -179,7 +179,8 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                 value = noteText,
                 onValueChange = { noteText = it },
                 modifier = Modifier.weight(1f),
-                singleLine = true
+                minLines = 1,
+                maxLines = 5
             )
         }
 
@@ -238,23 +239,9 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
 
         // Нагадування
         ReminderSection(
-            reminderType = reminderType,
-            reminderDate = reminderDate,
-            reminderTime = reminderTime,
-            reminderDateFrom = reminderDateFrom,
-            reminderDateTo = reminderDateTo,
-            onReminderTypeChange = { reminderType = it },
-            onReminderDateChange = { reminderDate = it },
-            onReminderTimeChange = { reminderTime = it },
-            onReminderDateFromChange = { reminderDateFrom = it },
-            onReminderDateToChange = { reminderDateTo = it },
-            onClear = {
-                reminderType = ""
-                reminderDate = ""
-                reminderTime = ""
-                reminderDateFrom = ""
-                reminderDateTo = ""
-            }
+            state = reminderState,
+            onChange = { reminderState = it },
+            onClear = { reminderState = ReminderState() }
         )
 
         // Топік
@@ -531,7 +518,14 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
                                 reminderDate = reminderDate,
                                 reminderTime = reminderTime,
                                 reminderDateFrom = reminderDateFrom,
-                                reminderDateTo = reminderDateTo
+                                reminderDateTo = reminderDateTo,
+                                reminderDates = encodeAttachments(reminderState.dates),
+                                reminderTimes = encodeAttachments(reminderState.times),
+                                reminderRepeatType = reminderState.repeatType,
+                                reminderRepeatCount = reminderState.repeatCount,
+                                reminderRepeatEveryHours = reminderState.repeatEveryHours,
+                                reminderUntilDate = reminderState.untilDate,
+                                reminderEndOfDay = reminderState.endOfDay
                             )
                         )
                         cancelReminder(context, noteId)
@@ -572,5 +566,4 @@ fun EditNoteScreen(navController: NavController, noteId: Int) {
             }
         )
     }
-
 }

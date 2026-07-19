@@ -110,7 +110,7 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
     var showViewer by remember { mutableStateOf(false) }
     var selectedViewerIndex by remember { mutableStateOf(0) }
     var cameraImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
-
+    var reminderState by remember { mutableStateOf(ReminderState()) }
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
@@ -164,7 +164,8 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
                 value = title,
                 onValueChange = { title = it },
                 modifier = Modifier.weight(1f),
-                singleLine = true
+                minLines = 1,
+                maxLines = 5
             )
         }
 
@@ -413,23 +414,9 @@ fun EditSubtaskScreen(navController: NavController, subtaskId: Int) {
 
         // Нагадування
         ReminderSection(
-            reminderType = reminderType,
-            reminderDate = reminderDate,
-            reminderTime = reminderTime,
-            reminderDateFrom = reminderDateFrom,
-            reminderDateTo = reminderDateTo,
-            onReminderTypeChange = { reminderType = it },
-            onReminderDateChange = { reminderDate = it },
-            onReminderTimeChange = { reminderTime = it },
-            onReminderDateFromChange = { reminderDateFrom = it },
-            onReminderDateToChange = { reminderDateTo = it },
-            onClear = {
-                reminderType = ""
-                reminderDate = ""
-                reminderTime = ""
-                reminderDateFrom = ""
-                reminderDateTo = ""
-            }
+            state = reminderState,
+            onChange = { reminderState = it },
+            onClear = { reminderState = ReminderState() }
         )
 
         Spacer(modifier = Modifier.height(24.dp))

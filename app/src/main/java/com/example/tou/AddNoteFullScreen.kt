@@ -168,7 +168,7 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
             }
         )
     }
-
+    var reminderState by remember { mutableStateOf(ReminderState()) }
     var isRecording by remember { mutableStateOf(false) }
     var showRecordingDialog by remember { mutableStateOf(false) }
     val voiceRecorder = remember { VoiceRecorderHelper(context) }
@@ -336,23 +336,9 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
 
         // Нагадування — окремо від терміну
         ReminderSection(
-            reminderType = reminderType,
-            reminderDate = reminderDate,
-            reminderTime = reminderTime,
-            reminderDateFrom = reminderDateFrom,
-            reminderDateTo = reminderDateTo,
-            onReminderTypeChange = { reminderType = it },
-            onReminderDateChange = { reminderDate = it },
-            onReminderTimeChange = { reminderTime = it },
-            onReminderDateFromChange = { reminderDateFrom = it },
-            onReminderDateToChange = { reminderDateTo = it },
-            onClear = {
-                reminderType = ""
-                reminderDate = ""
-                reminderTime = ""
-                reminderDateFrom = ""
-                reminderDateTo = ""
-            }
+            state = reminderState,
+            onChange = { reminderState = it },
+            onClear = { reminderState = ReminderState() }
         )
 
                 // Топік
@@ -465,7 +451,8 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                 value = description,
                 onValueChange = { description = it },
                 modifier = Modifier.weight(1f),
-                minLines = 3,
+                minLines = 1,
+                maxLines = 5,
                 placeholder = {
                     Text(text = stringResource(R.string.placeholder_enter_description))
                 }
@@ -625,7 +612,14 @@ fun AddNoteFullScreen(navController: NavController, defaultTopic: String = "", p
                                 reminderDate = reminderDate,
                                 reminderTime = reminderTime,
                                 reminderDateFrom = reminderDateFrom,
-                                reminderDateTo = reminderDateTo
+                                reminderDateTo = reminderDateTo,
+                                reminderDates = encodeAttachments(reminderState.dates),
+                                reminderTimes = encodeAttachments(reminderState.times),
+                                reminderRepeatType = reminderState.repeatType,
+                                reminderRepeatCount = reminderState.repeatCount,
+                                reminderRepeatEveryHours = reminderState.repeatEveryHours,
+                                reminderUntilDate = reminderState.untilDate,
+                                reminderEndOfDay = reminderState.endOfDay
                             )
                         )
                         navController.navigate("add_subtask/${noteId.toInt()}")

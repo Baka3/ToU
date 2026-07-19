@@ -19,5 +19,13 @@ data class NoteEntity(
     val reminderTime: String = "",
     val reminderDateFrom: String = "",
     val reminderDateTo: String = "",
-    val attachments: String = ""
+    val attachments: String = "",
+    val reminderDates: String = "",        // JSON список дат
+    val reminderTimes: String = "",        // JSON список часів
+    val reminderRepeatType: String = "",   // "daily", "weekly", "yearly", "custom"
+    val reminderRepeatCount: Int = 0,      // повторити N разів
+    val reminderRepeatEveryHours: Int = 0, // кожні N годин
+    val reminderUntilDate: String = "",    // до якої дати
+    val reminderEndOfDay: Boolean = false  // нагадати до кінця дня
+
 )
